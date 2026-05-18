@@ -1,0 +1,16 @@
+numpy>=1.26
+pandas>=2.1
+scipy>=1.11
+scikit-learn>=1.4
+torch>=2.2
+torchvision>=0.17
+Pillow>=10.0
+PyYAML>=6.0
+open_clip_torch>=2.24
+requests>=2.31
+# API SDKs (install only those you use)
+openai>=1.40
+anthropic>=0.34
+google-genai>=0.3
+# Dev
+pytest>=8.0

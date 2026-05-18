@@ -1,0 +1,132 @@
+\documentclass{article}
+
+\usepackage{neurips_2026}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{graphicx}
+
+\title{Measurement Invariance of the DDI Dermatology Benchmark Across Fitzpatrick Skin Type}
+
+\author{%
+  Anonymous Author(s) \\
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Fairness audits of dermatology AI typically compare accuracy across Fitzpatrick Skin Type (FST) groups---a six-level dermatologic scale of constitutive skin pigmentation, conventionally collapsed to FST-I/II (lightest), III/IV, and V/VI (darkest)---and treat the gap as direct evidence of differential model capability. This inference confuses three distinct phenomena: differences in capability, differences in item difficulty, and differences in how items function as measurements across groups. We propose to disentangle these by combining amortized Item Response Theory (IRT) calibration of foundation vision-language models against the Diverse Dermatology Images (DDI) benchmark with item-level measurement-invariance analysis grouped by FST. Our primary endpoint is an aggregate FST difficulty shift on the Rasch logit scale, with a pre-specified \emph{falsification threshold}---a magnitude floor below which we will declare no meaningful non-invariance even if a statistical test rejects---of $|\Delta b_{V\text{-}VI - I\text{-}II}| \geq 0.5$ logits, conjoined with a bootstrap 95\% CI excluding zero. A Linear Logistic Test Model (LLTM) decomposes whether residual FST signal survives controls for lesion category and malignancy.
+\end{abstract}
+
+% ============================================================================
+\section{Introduction}
+\label{sec:intro}
+% ============================================================================
+
+Dermatology AI tools are increasingly deployed in clinical care, with a wider range of applications under active consideration \citep{daneshjou2022disparities}. Fitzpatrick-Skin-Type-stratified accuracy has become the dominant fairness metric in those evaluations \citep{daneshjou2022disparities, groh2021evaluating}, and regulators, procurement reviewers, and journals now treat subgroup gaps as direct evidence of inequitable model capability. If the metric is validity-blind, the consequence is two-sided: tools whose subgroup gap reflects benchmark composition rather than capability are penalized unfairly, and tools whose lack of a stratified gap conceals true capability differences are cleared unjustifiably. Both errors are borne disproportionately by the patients the audits are intended to protect, which makes the question of whether stratified accuracy actually measures what it claims to measure a deployment-grade concern, not just a measurement-theory one.
+
+Suppose an FST-V/VI subgroup exhibits lower accuracy than an FST-I/II subgroup. Three explanations are observationally indistinguishable from a stratified metric. \emph{Capability difference}: models are genuinely worse at the underlying construct on darker skin. \emph{Difficulty composition}: the FST-V/VI items happen to be harder along construct-relevant dimensions (rarer lesions, more advanced disease), independent of FST per se. Critically, DDI is not paired across FST: the lesion-category distribution differs across strata, so a per-stratum mean accuracy compares partially non-overlapping mixtures of lesions, and a stratified gap admits a difficulty-composition explanation that cannot be ruled out without item-level analysis. \emph{Measurement non-invariance}: items in the two strata do not measure the same construct in the same way, so the accuracy numbers are not on a common scale \citep{borsboom2004concept}. Without separating these, any equity claim derived from a subgroup gap is unsupported.
+
+\textit{Do items in the DDI benchmark \citep{daneshjou2022disparities} exhibit measurement non-invariance across FST groups when foundation vision-language models are evaluated on them, and if so, is that non-invariance attributable to clinical factors (lesion category, malignancy) rather than FST per se?}
+
+We adapt amortized IRT calibration \citep{truong2025reliableefficientamortizedmodelbased} to image-classification benchmarks, combine it with measurement-invariance analysis to produce per-item validity diagnostics, and apply the pipeline to DDI. We are deliberately narrow. DDI is sourced entirely from a single institution (Stanford), so our findings speak to measurement properties of this benchmark rather than to dermatology AI evaluation in general, and any institution-level acquisition effects are absorbed into the FST contrast rather than partialed out. We do not causally identify FST as an independent driver of difficulty, since FST and lesion category are structurally entangled in DDI and further confounded with acquisition site. We report partial-identification analyses and adopt a hedged consequential-validity framing.
+
+% ============================================================================
+\section{Related work}
+\label{sec:related}
+% ============================================================================
+
+\paragraph{IRT for ML benchmark evaluation.}
+\citet{truong2025reliableefficientamortizedmodelbased} introduced amortized IRT calibration for text benchmarks; we adopt their approach, port it to image embeddings, and extend it to measurement invariance, which they do not address. \citet{polo2024tinybenchmarks} and \citet{rodriguez-etal-2021-evaluation} use IRT to construct compact benchmark subsets and rank NLP leaderboards, respectively; neither analyzes subgroup invariance.
+
+\paragraph{DIF and measurement invariance.}
+\emph{Differential item functioning} (DIF) is the psychometric term for a test item whose probability of a correct response, conditional on the latent trait being measured, varies across groups of respondents---i.e., an item that does not function as the same measurement instrument across groups. \citet{holland1993differential} provides the canonical DIF reference (Mantel--Haenszel, standardization), and \citet{millsap2011statistical} grounds the configural/metric/scalar-invariance hierarchy we adopt. We invert the usual direction: rather than treating DIF as a property of human test items, we use it as a tool to audit ML benchmarks.
+
+\paragraph{Fairness and validity in medical AI.}
+\citet{daneshjou2022disparities} introduced DDI to enable FST-stratified evaluation and documented substantial accuracy gaps; subsequent work has expanded the catalogue \citep{groh2021evaluating}. \citet{wang2025differenceaware} argue more broadly that fairness metrics conflate disparate kinds of difference. We are not aware of prior work applying item-level measurement-invariance analysis to medical AI benchmarks; we close that gap.
+
+% ============================================================================
+\section{Methods}
+\label{sec:methods}
+% ============================================================================
+
+\paragraph{Course-material connections.}
+The pipeline below draws on three threads from \citet{truong2026aims}. The Rasch model and its amortized calibration variant are the item-response and amortized-factor models of Chapter~2 (Foundations of Measurement). Joint MLE for $\theta$ and $\phi$ follows the parameter-estimation treatment of Chapter~3 (Learning). The aggregate measurement-invariance test (\S\ref{sec:aggregate}) operationalizes Chapter~6's framing of differential item functioning and construct-irrelevant variance as validity diagnostics, with the construct/criterion validity vocabulary used as the consequential frame. The LLTM decomposition (\S\ref{sec:lltm}) is a structured-latent-variable extension that bridges Chapters~2 and~6, casting the residual-FST coefficient as a bridge between benchmark instrumentation and validity audit.
+
+\paragraph{Respondent selection.}
+\label{sec:respondents}
+We plan to query 12--20 foundation vision and vision-language models spanning architectural families. Contrastive: CLIP, SigLIP, BiomedCLIP. Self-supervised: DINOv3. Open multimodal: LLaVA-class, Qwen-VL, InternVL. Closed APIs: GPT-4o-class, Claude, Gemini. Classical IRT assumes exchangeable respondents; foundation models share pretraining corpora and architectures and are not random draws from any population. We therefore weaken the population interpretation, and ability estimates should be read as referring to the currently extant frontier multimodal ecosystem. The primary endpoint (below) is an aggregate item-level statistic robust to this weakening.
+
+\paragraph{Query protocol.}
+\label{sec:query}
+Per (model, item): single response, binary task framing (benign vs.\ malignant), single fixed prompt version-controlled in \texttt{config/protocol.yaml}, temperature 0 where supported, structured-output extraction with a GPT-4o-mini fallback parser. \emph{Refusals are an analytic outcome category, not coerced into a default label.} A paraphrase-perturbed subset measures prompt sensitivity; $K = 3$ samples per (model, item) on a stratified subset estimate API non-determinism.
+
+\paragraph{Amortized Rasch calibration.}
+\label{sec:amortized}
+Let $X_{ij} \in \{0, 1\}$ indicate whether model $j$ answered item $i$ correctly. Under the Rasch model, $P(X_{ij} = 1 \mid \theta_j, b_i) = \sigma(\theta_j - b_i)$ \citep[Ch.~2]{truong2026aims}. Following \citet{truong2025reliableefficientamortizedmodelbased}, we amortize item difficulty as $b_i = f_\phi(e_i)$ where $e_i$ is a fixed image embedding and $f_\phi$ is a small MLP. Primary embedding model: \textbf{BiomedCLIP} \citep{zhang2023biomedclip} (dermatology-relevant pretraining). \textbf{DINOv3} \citep{siméoni2025dinov3} is used in parallel as a domain-agnostic robustness check. We jointly optimize $\{\theta_j\}$ and $\phi$ by maximizing the masked binary log-likelihood with Adam. Validation: (i) held-out item predictive AUC (20\% items); (ii) Spearman correlation against traditional joint-MLE Rasch on items with sufficient response density; (iii) infit/outfit mean-squares with flagging threshold $[0.7, 1.3]$.
+
+\paragraph{Aggregate measurement invariance (primary endpoint).}
+\label{sec:aggregate}
+Standard DIF treats persons as the grouping variable \citep[Ch.~6]{truong2026aims}; in our setup FST is an item-level attribute, inverting that configuration. We therefore frame the primary analysis as a measurement-invariance test on item subsets. After fitting the amortized Rasch model, we residualize $\hat b_i$ against lesion category and malignancy by OLS and compute
+\begin{equation}
+\Delta = \overline{\hat b_i^{\text{resid}}}_{i \in \text{FST V--VI}} - \overline{\hat b_i^{\text{resid}}}_{i \in \text{FST I--II}}.
+\end{equation}
+Uncertainty: non-parametric bootstrap over items, $B = 2000$ resamples. \textbf{Decision rule}:
+\begin{equation}
+|\Delta| \geq 0.5 \text{ logits} \quad \text{AND} \quad \text{bootstrap 95\% CI of } \Delta \text{ excludes zero} \quad \Rightarrow \quad \text{meaningful FST non-invariance}.
+\end{equation}
+The 0.5-logit threshold reflects the conventional small-DIF cutoff in psychometric practice; we additionally report 0.3 and 0.7 as sensitivity checks but treat 0.5 as binding. \textit{Configural-invariance check}: we refit the amortized model separately on FST-I/II and FST-V/VI subsets and report the Spearman correlation of model abilities; $\rho > 0.9$ is consistent with configural invariance (same construct ranks models the same way) even when difficulties shift.
+
+\paragraph{LLTM mechanism decomposition and metadata-only baselines.}
+\label{sec:lltm}
+We fit nested specifications of the form $b_i = \beta_0 + \boldsymbol{\beta}^\top \mathbf{x}_i$ with increasing feature sets: \textbf{M1} lesion category; \textbf{M2} +malignancy; \textbf{M3} +FST group dummies (I/II reference). M1 and M2 double as \emph{metadata-only baselines}: they predict per-item difficulty from clinical attributes that any reader of the dataset card could enumerate without running a single model query, and their $R^2$ against $\hat b_i$ is the share of difficulty variance that a chart-review-style audit would already explain. The headline mechanism estimate is $\boldsymbol{\beta}_{\text{FST}}$ in M3: the residual FST coefficient after lesion and malignancy controls. We report (i) $R^2$ at each nesting step so the marginal contribution of the amortized embedding signal above metadata is explicit (the gap between $R^2_{\text{M2}}$ and an embedding-only regression $R^2_{\text{Emb}}$ is the finer-grained-insight contribution of IRT calibration), (ii) bootstrap 95\% CIs on all coefficients, and (iii) the lesion-category $\times$ FST contingency table that drives the entanglement (\S\ref{sec:experiments}). We do not include image-acquisition covariates in the LLTM because the DDI release does not expose acquisition metadata (device, site, photographer, capture protocol); residual acquisition confounding is treated qualitatively in the limitations.
+
+\paragraph{Mechanism and refusal-rate DIF.}
+\label{sec:refusal}
+(i) Spearman correlations of per-item residualized difficulty with image-derived properties computable from the JPEG (resolution, mean luminance, color-channel statistics) and with embedding-space distance to the FST-I/II centroid; these are descriptive, not a quantitative decomposition. (ii) Refusal probability by FST via logistic regression with cluster-bootstrap CI clustered on model. A refusal pattern that loads on FST is itself evidence of differential item functioning, and we report it as such.
+
+\paragraph{Respondent-side analysis: family-stratified ability and contrast (exploratory).}
+\label{sec:family}
+The respondent non-exchangeability noted in \S\ref{sec:respondents} is itself analyzable. We annotate each model in \texttt{config/models.yaml} with an architectural family (contrastive image-text, self-supervised image, open multimodal-instruct, closed multimodal-instruct) and treat family as a grouping variable on the respondent side. We report: (a) the within-family mean and standard deviation of $\hat\theta_j$ and a one-way ANOVA $F$-statistic for family on $\hat\theta$, partitioning between-family from within-family variance in ability; (b) the family-stratified primary contrast $\Delta_{\text{family}}$, i.e., the FST difficulty shift recomputed with the respondent set restricted to each family in turn, so a finding that the V--VI vs.\ I--II gap is concentrated in a particular family (e.g., contrastive image-text models) is read off directly; (c) the Spearman correlation between per-item difficulty estimates obtained from disjoint respondent subsets defined by family, which tests whether different backbones produce a common item-difficulty ranking or partition into incompatible measurement instruments. This block is explicitly exploratory: with $J = 12$--$20$ models distributed across four families, within-family sample sizes are small and any family-level $\Delta$ carries wide uncertainty, so we report bootstrap CIs and decline a falsification threshold here.
+
+% ============================================================================
+\section{Experimental setup}
+\label{sec:experiments}
+% ============================================================================
+
+\textbf{Data:} DDI \citep{daneshjou2022disparities} as the primary benchmark with FST I/II, III/IV, V/VI labels. We will report the lesion-category $\times$ FST and malignancy $\times$ FST contingency tables on the full DDI release up front, so the reader can read the entanglement structure (\S\ref{sec:lltm}) off the data before seeing any IRT output. We do not use ISIC for inferential analysis (site-level photographic protocol differences would confound any FST signal); if used, ISIC supplies only pretraining signal for the amortized difficulty MLP in a two-stage design declared before the DDI fit.
+\textbf{Compute:} embedding extraction and open-weights inference run locally on a single GPU; closed-API inference scales as $J_{\text{api}} \times 656 \times P$ for $P$ protocol variants.
+\textbf{Bootstraps:} $B = 2{,}000$ resamples for the primary CI; cluster-bootstrap on models for the refusal logit.
+\textbf{Metrics reported:} held-out Rasch AUC and infit/outfit; amortized-vs-traditional Spearman; primary $\Delta$ with bootstrap CI and configural-invariance Spearman; LLTM variance-explained at each nesting level (with M1/M2 read as metadata-only baselines) and $\boldsymbol{\beta}_{\text{FST}}$ CI in M3; mechanism Spearmans; refusal-rate logit with cluster-bootstrap CI; family-stratified $\hat\theta$ and family-stratified $\Delta$ (\S\ref{sec:family}).
+
+% ============================================================================
+\section{Timeline and risks}
+\label{sec:timeline_risks}
+% ============================================================================
+
+This is a solo project; all weekly tasks below are owned by the single author. \textbf{Week 1 (setup):} finalize the respondent list with family annotations, fix the query protocol and parsing rules, build the DDI loader, BiomedCLIP and DINOv3 embedding pipelines, and the IRT codebase, and run amortized calibration on a 50--100 item pilot subset to verify the pipeline end-to-end. \textbf{Week 2 (query and fit):} query respondents on all DDI items under the primary protocol, run paraphrase-perturbed and $K = 3$ subsets, fit amortized and traditional Rasch, and report fit statistics. \textbf{Week 3 (analysis):} aggregate $\Delta$ with bootstrap, configural-invariance Spearman, LLTM nested fits, mechanism Spearmans, and refusal-rate DIF. \textbf{Week 4 (writing):} draft results, generate figures, run sensitivity sweeps surfaced during writing, and submit.
+
+\paragraph{Risks and mitigations.}
+\textit{Respondent non-exchangeability.} Foundation models are not random population draws. \emph{Mitigation:} weakened interpretation in \S\ref{sec:methods}, and family-stratified $\Delta$ reported.
+\textit{Acquisition confounding cannot be partialed out.} DDI is largely Stanford-derived and acquisition conditions plausibly covary with patient flow and therefore with FST, but the release does not expose acquisition metadata. \emph{Mitigation:} we treat this as an irreducible limitation rather than something the LLTM resolves; if M3 reports a meaningful $\boldsymbol{\beta}_{\text{FST}}$, we explicitly flag that this residual could still reflect acquisition rather than FST.
+\textit{Refusal-rate variation.} Closed APIs may refuse at FST-correlated rates. \emph{Mitigation:} refusals are an analytic category and refusal-rate-by-FST is itself an invariance signal we report.
+\textit{Amortization instability.} \emph{Mitigation:} validation thresholds (\S\ref{sec:methods}); if not met, fall back to traditional joint-MLE Rasch with wider uncertainty and note the fallback in limitations.
+\textit{API non-determinism.} \emph{Mitigation:} $K = 3$ samples on a stratified subset estimate a within-model noise floor on $\Delta$.
+
+\setlength{\bibsep}{0.0pt plus 0.3ex}
+\small
+\bibliographystyle{plainnat}
+\bibliography{refs}
+
+\end{document}

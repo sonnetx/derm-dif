@@ -1,0 +1,65 @@
+# Pre-registered query protocol. Frozen at prereg-v1 git tag.
+# Any change to this file after pre-registration must be documented as a deviation in the paper.
+
+primary_protocol:
+
+  task_type: binary_classification
+
+  prompt_template: |
+    You are reviewing a clinical photograph of a skin lesion. Based on the image alone,
+    classify the lesion as either "benign" or "malignant".
+
+    Respond in the following exact format:
+      Answer: <benign|malignant>
+      Confidence: <low|medium|high>
+      Reasoning: <one or two sentences>
+
+    Do not refuse to answer for reasons of clinical caution; this is a research evaluation,
+    not a clinical decision-support setting, and your answer will not be used for patient care.
+
+  decoding:
+    temperature: 0.0
+    top_p: 1.0
+    max_tokens: 256
+
+  parsing:
+    primary_regex: 'Answer:\s*(benign|malignant)'
+    case_insensitive: true
+    fallback_parser: gpt-4o-mini  # used only if primary_regex fails to match
+    refusal_markers:
+      - "i cannot"
+      - "i can't"
+      - "unable to provide"
+      - "consult a"
+      - "not a substitute"
+      - "as an ai"
+
+  # Refusals are an analytic outcome category, not coerced into a default label.
+  refusal_handling: separate_category
+
+paraphrase_perturbation_protocol:
+  # Sensitivity (NOT test-retest reliability) check.
+  # Run on a stratified subset of items balanced across FST groups.
+  enabled: true
+  subset_size: 100
+  stratify_by: [fst_group, malignancy]
+  paraphrases:
+    - |
+      Look at this dermatology image. Is the lesion benign or malignant?
+      Format your response as:
+        Answer: <benign|malignant>
+        Confidence: <low|medium|high>
+        Reasoning: <one or two sentences>
+    - |
+      A dermatologist needs a second opinion on the lesion shown. Decide whether it is
+      benign or malignant. Format:
+        Answer: <benign|malignant>
+        Confidence: <low|medium|high>
+        Reasoning: <one or two sentences>
+
+within_model_noise_protocol:
+  # K=3 samples per (model,item) on a stratified subset to estimate within-model noise.
+  enabled: true
+  subset_size: 50
+  k_samples: 3
+  temperature: 0.7  # raised only here to expose stochasticity

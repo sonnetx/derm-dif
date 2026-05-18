@@ -1,0 +1,107 @@
+# Pre-registered respondent model list.
+# Tag this file as `prereg-v1` in git BEFORE running any model queries against DDI.
+# Each entry must specify: id, family, modality, source, deterministic_decoding, version.
+
+models:
+
+  # --- Contrastively-trained image-text encoders ---
+  - id: openai/clip-vit-large-patch14
+    family: clip
+    modality: image-text
+    source: huggingface
+    deterministic_decoding: true
+    version: 2022-10-04
+    notes: Reference contrastive baseline.
+
+  - id: google/siglip-large-patch16-384
+    family: siglip
+    modality: image-text
+    source: huggingface
+    deterministic_decoding: true
+    version: 2024-01-12
+
+  - id: microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224
+    family: biomedclip
+    modality: image-text
+    source: huggingface
+    deterministic_decoding: true
+    version: 2023-03-01
+    notes: Used both as a respondent AND as the primary embedding model. Track for circularity in the analysis.
+
+  # --- Self-supervised vision encoders (paired with linear probe head trained on a held-out split) ---
+  - id: facebook/dinov3-vitl16-pretrain-lvd1689m
+    family: dinov3
+    modality: image
+    source: huggingface
+    deterministic_decoding: true
+    version: 2025-08-14
+
+  # --- Generatively-trained multimodal models (open-weights) ---
+  - id: llava-hf/llava-1.5-13b-hf
+    family: llava
+    modality: image-text
+    source: huggingface
+    deterministic_decoding: true
+    version: 2023-10-05
+
+  - id: Qwen/Qwen2-VL-7B-Instruct
+    family: qwen-vl
+    modality: image-text
+    source: huggingface
+    deterministic_decoding: true
+    version: 2024-08-29
+
+  - id: OpenGVLab/InternVL2-8B
+    family: internvl
+    modality: image-text
+    source: huggingface
+    deterministic_decoding: true
+    version: 2024-07-04
+
+  # --- Closed-API multimodal models ---
+  - id: openai/gpt-4o-2024-11-20
+    family: gpt-4o
+    modality: image-text
+    source: api-openai
+    deterministic_decoding: false  # API does not expose deterministic decoding; temp set to 0.
+    version: 2024-11-20
+
+  - id: anthropic/claude-sonnet-4-5
+    family: claude
+    modality: image-text
+    source: api-anthropic
+    deterministic_decoding: false
+    version: 2025-09-29
+
+  - id: google/gemini-2.0-flash
+    family: gemini
+    modality: image-text
+    source: api-google
+    deterministic_decoding: false
+    version: 2025-02-05
+
+  # --- Optional extension respondents (run if budget allows; documented as such) ---
+  - id: openai/gpt-4o-mini-2024-07-18
+    family: gpt-4o
+    modality: image-text
+    source: api-openai
+    deterministic_decoding: false
+    version: 2024-07-18
+    optional: true
+
+  - id: anthropic/claude-haiku-4-5-20251001
+    family: claude
+    modality: image-text
+    source: api-anthropic
+    deterministic_decoding: false
+    version: 2025-10-01
+    optional: true
+
+# Family-stratified DIF analysis groups.
+# Items must have at least 2 models per family in the family-stratified analysis;
+# families failing this threshold collapse into "other" with documentation.
+family_groups:
+  contrastive: [clip, siglip, biomedclip]
+  self_supervised_vision: [dinov3]
+  open_multimodal: [llava, qwen-vl, internvl]
+  closed_api: [gpt-4o, claude, gemini]

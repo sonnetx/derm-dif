@@ -1,0 +1,67 @@
+# Pre-registered analysis decisions. Frozen at prereg-v1.
+
+aggregate_dif:
+  primary_endpoint: residualized_difficulty_shift
+  comparison_groups:
+    focal: [V, VI]
+    reference: [I, II]
+  residualize_against:
+    - lesion_category
+    - malignancy
+  bootstrap:
+    n_resamples: 2000
+    resample_units: [items, models]   # paired bootstrap over both
+    seed: 0xDD1
+  decision_rule:
+    threshold_logits: 0.5
+    require_ci_excludes_zero: true
+  sensitivity_thresholds: [0.3, 0.7]
+
+configural_invariance:
+  metric: spearman_rank_correlation
+  refit_on:
+    - subset: fst_I_II
+    - subset: fst_V_VI
+  high_invariance_cutoff: 0.9
+
+per_item_dif:
+  status: exploratory_secondary
+  methods: [lord_chi_square, mantel_haenszel, permutation_residual]
+  fdr_q: 0.05
+  permutation_n: 10000
+
+lltm:
+  nesting:
+    - name: M0
+      features: []
+    - name: M1
+      features: [lesion_category]
+    - name: M2
+      features: [lesion_category, malignancy]
+    - name: M3
+      features: [lesion_category, malignancy, image_resolution, mean_luminance, color_channel_stats]
+    - name: M4
+      features: [lesion_category, malignancy, image_resolution, mean_luminance, color_channel_stats, fst_group]
+  primary_coefficient: fst_group
+  bootstrap_n: 2000
+
+mechanism:
+  per_item_correlates:
+    - image_resolution
+    - mean_luminance
+    - r_channel_mean
+    - g_channel_mean
+    - b_channel_mean
+    - embedding_distance_to_fst_I_II_centroid
+
+refusal_dif:
+  status: primary_descriptive
+  model: logistic_regression
+  outcome: refused
+  predictor: fst_group
+  cluster_bootstrap_unit: model_id
+
+amortized_validation:
+  holdout_item_fraction: 0.20
+  min_holdout_auc: 0.65   # below this -> fallback to traditional EM
+  min_traditional_spearman: 0.7  # if traditional fit available
