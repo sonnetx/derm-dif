@@ -34,6 +34,12 @@ def main() -> None:
     ap.add_argument("--protocol-config", type=Path, default=Path("config/protocol.yaml"))
     ap.add_argument("--out", type=Path, default=Path("artifacts/responses.jsonl"))
     ap.add_argument("--include-optional", action="store_true")
+    ap.add_argument(
+        "--source",
+        default=None,
+        help="Comma-separated list of model `source` values to include "
+        "(e.g., api-openai,api-anthropic,api-google). Default: all sources.",
+    )
     args = ap.parse_args()
 
     items = load_ddi(args.ddi_root)
@@ -42,6 +48,10 @@ def main() -> None:
 
     if not args.include_optional:
         specs = [s for s in specs if not s.optional]
+
+    if args.source:
+        allowed = {s.strip() for s in args.source.split(",")}
+        specs = [s for s in specs if s.source in allowed]
 
     done = already_done(args.out)
     total = len(specs) * len(items)
