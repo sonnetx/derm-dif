@@ -17,7 +17,7 @@ from PIL import Image
 EmbeddingBackend = Literal["biomedclip", "dinov3"]
 
 
-def load_backend(name: EmbeddingBackend, device: str = "cuda"):
+def load_backend(name: EmbeddingBackend, device: str = "cuda" if torch.cuda.is_available() else "cpu"):
     """Returns (model, preprocess, dim)."""
     if name == "biomedclip":
         from open_clip import create_model_from_pretrained
@@ -50,7 +50,7 @@ def load_backend(name: EmbeddingBackend, device: str = "cuda"):
 def embed_images(
     paths: Sequence[Path],
     backend: EmbeddingBackend = "biomedclip",
-    device: str = "cuda",
+    device: str = "cuda" if torch.cuda.is_available() else "cpu",
     batch_size: int = 32,
 ) -> np.ndarray:
     """Compute one embedding per image. Returns array of shape (N, dim)."""
