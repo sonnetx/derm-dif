@@ -77,6 +77,9 @@ pip3 install --no-cache-dir --only-binary :all: scikit-learn==1.4.2
 # torch >= 2.6, which would conflict with the cu118-wheel torch==2.4.0 above.
 pip3 install --no-cache-dir Pillow PyYAML einops open_clip_torch "transformers>=4.40,<5" pytest
 
+# Closed-API SDKs for script 02 (query phase).
+pip3 install --no-cache-dir openai anthropic google-genai
+
 # Editable install of derm-dif itself.
 pip3 install --no-cache-dir -e "$PROJECT_ROOT"
 
