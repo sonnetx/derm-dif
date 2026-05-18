@@ -66,7 +66,9 @@ pip3 install --no-cache-dir --only-binary :all: scipy==1.12.0
 pip3 install --no-cache-dir --only-binary :all: scikit-learn==1.4.2
 
 # Imaging / IRT / config / tests
-pip3 install --no-cache-dir Pillow PyYAML einops open_clip_torch pytest
+# transformers is required by open_clip_torch for HF-backed text towers
+# (BiomedCLIP uses PubMedBERT via the HF integration).
+pip3 install --no-cache-dir Pillow PyYAML einops open_clip_torch transformers pytest
 
 # Editable install of derm-dif itself.
 pip3 install --no-cache-dir -e "$PROJECT_ROOT"
