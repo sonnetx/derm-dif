@@ -7,7 +7,7 @@ torchvision>=0.17
 Pillow>=10.0
 PyYAML>=6.0
 open_clip_torch>=2.24
-transformers>=4.40   # required by open_clip for BiomedCLIP's HF text tower
+transformers>=4.40,<5   # required by open_clip for BiomedCLIP's HF text tower; 5.x needs torch>=2.6
 requests>=2.31
 # API SDKs (install only those you use)
 openai>=1.40
