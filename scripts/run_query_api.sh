@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=derm_dif_query_api
-#SBATCH --partition=cpu
+#SBATCH --partition=normal
 #SBATCH --time=04:00:00
 #SBATCH --mem=8G
 #SBATCH --cpus-per-task=2
