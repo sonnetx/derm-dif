@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=derm_dif_pilot
-#SBATCH --partition=dev
+#SBATCH --partition=cpu
 #SBATCH --time=01:00:00
 #SBATCH --mem=16G
 #SBATCH --cpus-per-task=4
