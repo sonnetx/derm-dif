@@ -20,20 +20,17 @@ class DDIItem:
     item_id: str
     image_path: Path
     fst_group: FSTGroup
-    fst_raw: int  # 1..6 (single-tone) or 12/34/56 (paired, as shipped by DDI release)
+    fst_raw: int  # 12 / 34 / 56 (paired-group encoding, as shipped by DDI)
     lesion_category: str
     malignant: bool
 
 
 def _fst_group(fst_raw: int) -> FSTGroup:
-    # DDI release encodes skin_tone as the paired group (12 / 34 / 56) rather than
-    # an individual 1..6 value. Accept both forms so the loader is robust to either
-    # schema variant.
-    if fst_raw in (1, 2, 12):
+    if fst_raw == 12:
         return "I-II"
-    if fst_raw in (3, 4, 34):
+    if fst_raw == 34:
         return "III-IV"
-    if fst_raw in (5, 6, 56):
+    if fst_raw == 56:
         return "V-VI"
     raise ValueError(f"unexpected FST value: {fst_raw}")
 
