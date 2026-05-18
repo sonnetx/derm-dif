@@ -36,7 +36,7 @@ def _fst_group(fst_raw: int) -> FSTGroup:
 
 
 def load_ddi(root: Path) -> list[DDIItem]:
-    """Load DDI items from `root`, which must contain `ddi_metadata.csv` and `images/`.
+    """Load DDI items from `root`, which must contain `ddi_metadata.csv` and the image files (e.g., `000001.png`) directly at the top level.
 
     The metadata schema is the one shipped by Daneshjou et al. (2022). Column names
     are normalized here so downstream code is insulated from minor release changes.
@@ -54,7 +54,7 @@ def load_ddi(root: Path) -> list[DDIItem]:
         items.append(
             DDIItem(
                 item_id=str(row.item_id),
-                image_path=root / "images" / f"{row.item_id}",
+                image_path=root / f"{row.item_id}",
                 fst_group=_fst_group(int(row.fst_raw)),
                 fst_raw=int(row.fst_raw),
                 lesion_category=str(row.lesion_category),
