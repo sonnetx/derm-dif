@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=derm_dif_pilot
-#SBATCH --partition=roxanad
+#SBATCH --partition=dev
 #SBATCH --time=01:00:00
 #SBATCH --mem=16G
 #SBATCH --cpus-per-task=4
