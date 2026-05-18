@@ -39,6 +39,11 @@ rm -rf "$VENV"
 python3 -m venv "$VENV"
 source "$VENV/bin/activate"
 
+# Sherlock's default pip config sets user=true, which causes pip to install
+# into ~/.local even when a venv is active — uninstalls from the venv and
+# reinstalls outside it, silently breaking the venv. Disable for this script.
+export PIP_USER=false
+
 export PYTHONPATH="$PROJECT_ROOT:${PYTHONPATH:-}"
 export TMPDIR=/scratch/users/$USER/tmp
 export HF_HOME=/scratch/users/$USER/huggingface
