@@ -171,6 +171,39 @@ _BACKENDS = {
 }
 
 
+_RATE_LIMIT_MARKERS = (
+    "429",
+    "RESOURCE_EXHAUSTED",
+    "rate_limit",
+    "rate limit",
+    "overloaded",
+    "quota",
+)
+
+
+def _is_rate_limit(exc: BaseException) -> bool:
+    msg = str(exc)
+    return any(m.lower() in msg.lower() for m in _RATE_LIMIT_MARKERS)
+
+
+def _with_backoff(call, max_attempts: int = 8, base_delay: float = 2.0):
+    """Retry `call` on rate-limit-style exceptions with exponential backoff
+    capped at 60 seconds. Non-rate-limit exceptions raise immediately so
+    they're recorded as errors in the JSONL log."""
+    last_exc: BaseException | None = None
+    for attempt in range(max_attempts):
+        try:
+            return call()
+        except Exception as e:  # noqa: BLE001 -- we re-raise unless rate-limited
+            if not _is_rate_limit(e):
+                raise
+            last_exc = e
+            delay = min(60.0, base_delay * (2 ** attempt))
+            time.sleep(delay)
+    assert last_exc is not None
+    raise last_exc
+
+
 def query_one(
     spec: ModelSpec, image_path: Path, item_id: str, prompt: str, decoding: dict
 ) -> QueryResult:
@@ -179,7 +212,7 @@ def query_one(
         raise ValueError(f"unknown backend: {spec.source}")
     t0 = time.time()
     try:
-        text = fn(spec, image_path, prompt, decoding)
+        text = _with_backoff(lambda: fn(spec, image_path, prompt, decoding))
         return QueryResult(
             model_id=spec.id,
             item_id=item_id,
