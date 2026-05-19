@@ -74,10 +74,13 @@ models:
     version: 2025-09-29
 
   # Pre-reg deviation 2026-05-11: gemini-2.0-flash (originally pre-registered)
-  # was deprecated by Google before our query phase completed and returns 404.
-  # Substituted gemini-3.1-pro-preview as the closest currently-available
-  # Gemini vision respondent. Disclosed in paper limitations.
-  - id: google/gemini-3.1-pro-preview
+  # was deprecated by Google before our query phase completed. We first
+  # substituted gemini-3.1-pro-preview but that preview-tier model has a
+  # ~250 requests/day quota that we exhausted before completing the panel.
+  # Final substitution: gemini-3.1-flash-lite -- production tier (no quota
+  # exhaustion issue), current 3.x family, Flash class (matches the original
+  # Flash-tier pre-reg intent). Disclosed in paper limitations.
+  - id: google/gemini-3.1-flash-lite
     family: gemini
     modality: image-text
     source: api-google
