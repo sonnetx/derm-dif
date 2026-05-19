@@ -111,6 +111,42 @@ The respondent non-exchangeability noted in \S\ref{sec:respondents} is itself an
 \textbf{Metrics reported:} held-out Rasch AUC and infit/outfit; amortized-vs-traditional Spearman; primary $\Delta$ with bootstrap CI and configural-invariance Spearman; LLTM variance-explained at each nesting level (with M1/M2 read as metadata-only baselines) and $\boldsymbol{\beta}_{\text{FST}}$ CI in M3; mechanism Spearmans; refusal-rate logit with cluster-bootstrap CI; family-stratified $\hat\theta$ and family-stratified $\Delta$ (\S\ref{sec:family}).
 
 % ============================================================================
+\section{Preliminary results (closed-API subpanel)}
+\label{sec:prelim_results}
+% ============================================================================
+
+We report preliminary descriptive statistics from the two closed-API respondents that have completed the full DDI panel at the time of writing: GPT-4o (\texttt{gpt-4o-2024-11-20}) and Claude Sonnet 4.5 (\texttt{claude-sonnet-4-5}). The third closed-API respondent (Gemini Flash, \texttt{gemini-3.1-flash-lite}) and all open-weight and contrastive respondents are still being collected; the pre-registered amortized Rasch primary endpoint (\S\ref{sec:aggregate}) is not estimated here, since $J = 2$ respondents is below the minimum panel size for stable item-difficulty calibration. We present the conventional fairness-audit framing on the current partial panel as the comparator against which the pre-registered IRT decomposition will later be evaluated.
+
+\paragraph{Baseline FST-stratified accuracy.}
+Table~\ref{tab:prelim-fst-accuracy} reports per-model accuracy under the binary benign-vs-malignant protocol, stratified by FST group. Both respondents show a V--VI minus I--II accuracy gap of $-5$ to $-7$ percentage points and a non-monotonic pattern across FST groups (III--IV intermediate or slightly higher than I--II rather than the linear decline that a pure capability-on-darker-skin story would predict). Both models also perform below the majority-class baseline of $\approx 0.78$ implied by DDI's benign-malignant prevalence: they over-predict malignancy ($\approx 56\%$ of GPT-4o's parsed answers are ``malignant'' vs.\ $\approx 22\%$ true prevalence). This systematic over-flagging means that ``FST-V/VI accuracy is lower than FST-I/II accuracy'' is not, on its own, evidence of differential capability on dark skin: it could equally reflect a higher base rate of malignancy in the V/VI subset of DDI, a calibration miss that interacts with stratum composition, or a difficulty-distribution shift on construct-relevant dimensions. That inferential ambiguity is exactly what the pre-registered IRT analysis is designed to resolve (\S\ref{sec:aggregate}).
+
+\begin{table}[t]
+\centering
+\caption{Baseline FST-stratified accuracy (closed-API respondent subpanel). Per-model proportion of items answered correctly under the binary benign-vs-malignant protocol, stratified by FST group. The right-most column gives the V--VI minus I--II accuracy gap that conventional fairness audits would report; the pre-registered Rasch-difficulty analysis (\S\ref{sec:aggregate}) tests whether this gap reflects differential capability or differential item difficulty. Item counts per FST group in parentheses.}
+\label{tab:prelim-fst-accuracy}
+\begin{tabular}{lrrrrr}
+\toprule
+Model & $N$ & FST I--II & FST III--IV & FST V--VI & Gap (V--VI $-$ I--II) \\
+\midrule
+anthropic/claude-sonnet-4-5 & 656 & 0.611 (208) & 0.602 (241) & 0.546 (207) & $-$0.065 \\
+openai/gpt-4o-2024-11-20    & 656 & 0.596 (208) & 0.631 (241) & 0.541 (207) & $-$0.055 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Inter-model agreement.}
+Cohen's $\kappa$ between GPT-4o and Claude Sonnet 4.5 on the parseable subset is $0.473$ (raw concordance $0.739$, $n = 656$), corresponding to moderate agreement. We note two implications: (i) the two respondents share a non-trivial latent signal (above-chance agreement after correcting for marginals), which is the construct-stability precondition for an IRT calibration to be interpretable; (ii) approximately $26\%$ of items are inter-model disagreements, and the IRT decomposition will discriminate items where the disagreement reflects item-level difficulty from items where it reflects model-specific response tendencies. The configural-invariance check (\S\ref{sec:aggregate}) re-estimates the construct-stability claim once the full respondent panel is available.
+
+\paragraph{Refusal behavior.}
+Both closed-API respondents return zero refusals and zero unparseable responses on the full panel ($0/656$ each); responses follow the structured prompt template cleanly. Refusal-rate DIF analysis (\S\ref{sec:refusal}) accordingly requires the open-weight VLM respondents to be informative; the closed-API subpanel alone cannot test the pre-registered refusal-by-FST hypothesis.
+
+\paragraph{What this does and does not show.}
+These descriptive statistics are the inputs that conventional FST-stratified fairness audits would report and conclude on directly: ``two frontier closed-API vision-language models show a $5$--$7$ percentage-point accuracy drop on FST-V/VI relative to FST-I/II.'' The pre-registered analysis (\S\ref{sec:methods}) is the test of whether that statement, once aggregated across the full respondent panel and adjusted for item-level difficulty composition, survives. We draw no inferential conclusion from the partial panel here; we report it as the baseline against which the pre-registered IRT contrast will be evaluated.
+
+\paragraph{Pre-registration deviations.}
+We record one deviation from \texttt{config/models.yaml} as frozen at \texttt{prereg-v1}. The originally pre-registered Gemini respondent, \texttt{gemini-2.0-flash}, was deprecated by Google before our query phase completed and now returns 404. We substituted \texttt{gemini-3.1-flash-lite}---the production-tier Flash-family model in the current Gemini line---as the closest analog. (A briefly attempted intermediate substitution to \texttt{gemini-3.1-pro-preview} was abandoned after that model's $\approx 250$ requests/day quota proved insufficient to complete the panel.) No other deviations.
+
+% ============================================================================
 \section{Timeline and risks}
 \label{sec:timeline_risks}
 % ============================================================================
