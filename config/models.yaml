@@ -73,12 +73,16 @@ models:
     deterministic_decoding: false
     version: 2025-09-29
 
-  - id: google/gemini-2.0-flash
+  # Pre-reg deviation 2026-05-11: gemini-2.0-flash (originally pre-registered)
+  # was deprecated by Google before our query phase completed and returns 404.
+  # Substituted gemini-3.1-pro-preview as the closest currently-available
+  # Gemini vision respondent. Disclosed in paper limitations.
+  - id: google/gemini-3.1-pro-preview
     family: gemini
     modality: image-text
     source: api-google
     deterministic_decoding: false
-    version: 2025-02-05
+    version: 2026-05-11
 
   # --- Optional extension respondents (run if budget allows; documented as such) ---
   - id: openai/gpt-4o-mini-2024-07-18

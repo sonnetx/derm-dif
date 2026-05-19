@@ -75,7 +75,7 @@ def query_openai(spec: ModelSpec, image_path: Path, prompt: str, decoding: dict)
                     {"type": "text", "text": prompt},
                     {
                         "type": "image_url",
-                        "image_url": {"url": f"data:image/jpeg;base64,{_b64(image_path)}"},
+                        "image_url": {"url": f"data:image/png;base64,{_b64(image_path)}"},
                     },
                 ],
             }
@@ -103,7 +103,7 @@ def query_anthropic(spec: ModelSpec, image_path: Path, prompt: str, decoding: di
                         "type": "image",
                         "source": {
                             "type": "base64",
-                            "media_type": "image/jpeg",
+                            "media_type": "image/png",
                             "data": _b64(image_path),
                         },
                     },
