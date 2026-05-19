@@ -57,6 +57,21 @@ paraphrase_perturbation_protocol:
         Confidence: <low|medium|high>
         Reasoning: <one or two sentences>
 
+zero_shot_protocol:
+  # Used by contrastive image-text respondents (CLIP / SigLIP / BiomedCLIP).
+  # Their "answer" is argmax over cosine similarity between the image and
+  # embeddings of these two candidate label strings; the output is formatted
+  # as Answer/Confidence/Reasoning so the primary parser handles it uniformly.
+  # Pre-reg note (2026-05-19): this block is a refinement formalizing how
+  # non-generative respondents are queried; it does not change the primary
+  # endpoint decision rule.
+  candidate_labels:
+    benign: "a photo of a benign skin lesion"
+    malignant: "a photo of a malignant skin lesion"
+  confidence_bins:
+    high: 0.80      # softmax probability >= 0.80 -> "high"
+    medium: 0.60    # >= 0.60 and < 0.80 -> "medium"; below -> "low"
+
 within_model_noise_protocol:
   # K=3 samples per (model,item) on a stratified subset to estimate within-model noise.
   enabled: true

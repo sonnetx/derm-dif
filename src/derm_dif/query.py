@@ -163,11 +163,125 @@ def query_huggingface(spec: ModelSpec, image_path: Path, prompt: str, decoding: 
     return r.json()["choices"][0]["message"]["content"]
 
 
+# --- Contrastive zero-shot backend (CLIP / SigLIP / BiomedCLIP) ---
+#
+# For non-generative contrastive image-text models, "answering" the benchmark is
+# argmax over cosine similarity between the image embedding and embeddings of
+# candidate text labels. We synthesize an Answer/Confidence/Reasoning string
+# matching the primary parser so downstream code is uniform.
+#
+# Candidate text labels come from protocol.yaml's zero_shot_protocol block;
+# scripts must call set_zero_shot_config(...) before querying.
+
+_ZEROSHOT_CFG: dict | None = None
+_ZEROSHOT_CACHE: dict[str, object] = {}
+
+
+def set_zero_shot_config(cfg: dict) -> None:
+    """Stash the zero-shot protocol config (candidate labels, confidence bins)
+    so query_zero_shot can read it without changing the backend signature."""
+    global _ZEROSHOT_CFG
+    _ZEROSHOT_CFG = cfg
+
+
+def _zeroshot_device() -> str:
+    import torch
+    return "cuda" if torch.cuda.is_available() else "cpu"
+
+
+def _load_zeroshot(model_id: str):
+    """Return encode_fn(image_path, candidate_texts) -> 1D ndarray of softmax probs.
+    Models are cached per-process; loading BiomedCLIP weights once takes ~10s."""
+    if model_id in _ZEROSHOT_CACHE:
+        return _ZEROSHOT_CACHE[model_id]
+
+    import torch
+    from PIL import Image as PILImage
+
+    device = _zeroshot_device()
+
+    if "BiomedCLIP" in model_id:
+        from open_clip import create_model_from_pretrained, get_tokenizer
+        model, preprocess = create_model_from_pretrained(f"hf-hub:{model_id}")
+        tokenizer = get_tokenizer(f"hf-hub:{model_id}")
+        model.eval().to(device)
+        logit_scale = getattr(model, "logit_scale", None)
+
+        @torch.inference_mode()
+        def encode_fn(image_path: Path, candidate_texts: list[str]):
+            img = PILImage.open(image_path).convert("RGB")
+            x = preprocess(img).unsqueeze(0).to(device)
+            img_feat = model.encode_image(x)
+            img_feat = img_feat / img_feat.norm(dim=-1, keepdim=True).clamp_min(1e-8)
+            tokens = tokenizer(candidate_texts).to(device)
+            txt_feat = model.encode_text(tokens)
+            txt_feat = txt_feat / txt_feat.norm(dim=-1, keepdim=True).clamp_min(1e-8)
+            sims = img_feat @ txt_feat.T
+            if logit_scale is not None:
+                sims = sims * logit_scale.exp()
+            return sims.softmax(dim=-1).squeeze(0).cpu().numpy()
+    else:
+        # CLIP and SigLIP via transformers' AutoProcessor + AutoModel.
+        from transformers import AutoModel, AutoProcessor
+        processor = AutoProcessor.from_pretrained(model_id)
+        model = AutoModel.from_pretrained(model_id).eval().to(device)
+
+        @torch.inference_mode()
+        def encode_fn(image_path: Path, candidate_texts: list[str]):
+            img = PILImage.open(image_path).convert("RGB")
+            inputs = processor(text=candidate_texts, images=img,
+                               return_tensors="pt", padding=True)
+            inputs = {k: v.to(device) for k, v in inputs.items()}
+            out = model(**inputs)
+            return out.logits_per_image.softmax(dim=-1).squeeze(0).cpu().numpy()
+
+    _ZEROSHOT_CACHE[model_id] = encode_fn
+    return encode_fn
+
+
+def query_zero_shot(spec: ModelSpec, image_path: Path, prompt: str, decoding: dict) -> str:
+    """Contrastive zero-shot argmax. `prompt` and `decoding` are unused; the
+    candidate labels and confidence bins come from the module-level
+    _ZEROSHOT_CFG stashed by set_zero_shot_config()."""
+    if _ZEROSHOT_CFG is None:
+        raise RuntimeError(
+            "zero-shot backend invoked but _ZEROSHOT_CFG not set. "
+            "Call query.set_zero_shot_config(protocol['zero_shot_protocol']) first."
+        )
+    labels_cfg = _ZEROSHOT_CFG["candidate_labels"]
+    bins = _ZEROSHOT_CFG.get("confidence_bins", {"high": 0.80, "medium": 0.60})
+
+    label_order = ["benign", "malignant"]
+    candidate_texts = [labels_cfg[k] for k in label_order]
+
+    encode = _load_zeroshot(spec.id)
+    probs = encode(image_path, candidate_texts)
+
+    idx = int(probs.argmax())
+    pred = label_order[idx]
+    pred_prob = float(probs[idx])
+    other_prob = float(probs[1 - idx])
+    if pred_prob >= bins.get("high", 0.80):
+        confidence = "high"
+    elif pred_prob >= bins.get("medium", 0.60):
+        confidence = "medium"
+    else:
+        confidence = "low"
+
+    return (
+        f"Answer: {pred}\n"
+        f"Confidence: {confidence}\n"
+        f"Reasoning: zero-shot CLIP-style argmax over candidate labels; "
+        f"P({pred})={pred_prob:.3f}, P({label_order[1 - idx]})={other_prob:.3f}"
+    )
+
+
 _BACKENDS = {
     "api-openai": query_openai,
     "api-anthropic": query_anthropic,
     "api-google": query_google,
     "huggingface": query_huggingface,
+    "contrastive-zeroshot": query_zero_shot,
 }
 
 

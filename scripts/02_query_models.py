@@ -12,7 +12,7 @@ from pathlib import Path
 import yaml
 
 from derm_dif.data.ddi import load_ddi
-from derm_dif.query import append_jsonl, load_model_specs, query_one
+from derm_dif.query import append_jsonl, load_model_specs, query_one, set_zero_shot_config
 
 
 def already_done(path: Path) -> set[tuple[str, str]]:
@@ -44,7 +44,10 @@ def main() -> None:
 
     items = load_ddi(args.ddi_root)
     specs = load_model_specs(args.models_config)
-    protocol = yaml.safe_load(args.protocol_config.read_text())["primary_protocol"]
+    full_protocol = yaml.safe_load(args.protocol_config.read_text())
+    protocol = full_protocol["primary_protocol"]
+    if "zero_shot_protocol" in full_protocol:
+        set_zero_shot_config(full_protocol["zero_shot_protocol"])
 
     if not args.include_optional:
         specs = [s for s in specs if not s.optional]

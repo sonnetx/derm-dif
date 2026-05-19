@@ -8,22 +8,22 @@ models:
   - id: openai/clip-vit-large-patch14
     family: clip
     modality: image-text
-    source: huggingface
+    source: contrastive-zeroshot
     deterministic_decoding: true
     version: 2022-10-04
-    notes: Reference contrastive baseline.
+    notes: Reference contrastive baseline. Queried as zero-shot argmax over candidate labels (see protocol.yaml zero_shot_protocol).
 
   - id: google/siglip-large-patch16-384
     family: siglip
     modality: image-text
-    source: huggingface
+    source: contrastive-zeroshot
     deterministic_decoding: true
     version: 2024-01-12
 
   - id: microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224
     family: biomedclip
     modality: image-text
-    source: huggingface
+    source: contrastive-zeroshot
     deterministic_decoding: true
     version: 2023-03-01
     notes: Used both as a respondent AND as the primary embedding model. Track for circularity in the analysis.
