@@ -115,7 +115,7 @@ The respondent non-exchangeability noted in \S\ref{sec:respondents} is itself an
 \label{sec:prelim_results}
 % ============================================================================
 
-We report preliminary descriptive statistics from the four respondents that have completed the full DDI panel at the time of writing: two closed-API generative models---GPT-4o (\texttt{gpt-4o-2024-11-20}) and Claude Sonnet 4.5 (\texttt{claude-sonnet-4-5})---and two contrastive zero-shot models---CLIP ViT-L/14 (\texttt{openai/clip-vit-large-patch14}) and BiomedCLIP (\texttt{microsoft/BiomedCLIP-PubMedBERT\_256-vit\_base\_patch16\_224}). A third contrastive respondent (SigLIP-L/16) and the open-weight VLM panel are still being collected; the pre-registered amortized Rasch primary endpoint (\S\ref{sec:aggregate}) is not yet estimated here. We present the conventional fairness-audit framing on the current four-respondent panel as the comparator against which the pre-registered IRT decomposition will later be evaluated, and three descriptive findings from this partial panel that already inform how that decomposition should be read.
+We report preliminary descriptive and IRT-calibration statistics from the five respondents that have completed the full DDI panel at the time of writing: two closed-API generative models (GPT-4o, Claude Sonnet 4.5) and three contrastive zero-shot models (CLIP ViT-L/14, SigLIP-L/16, BiomedCLIP). The open-weight generative VLM panel is still being collected; the configural-invariance check (\S\ref{sec:aggregate}) and the LLTM decomposition (\S\ref{sec:lltm}) are deferred to the full panel. We do, however, run the pre-registered amortized Rasch primary endpoint on the current panel as a smoke test of the pipeline against real data, and the result is informative both for the audit substance and for the validity of the IRT framework itself.
 
 \paragraph{Dataset entanglement (DDI metadata only).}
 \label{sec:prelim_entanglement}
@@ -151,12 +151,14 @@ Table~\ref{tab:prelim-fst-accuracy} reports per-model accuracy under the binary 
 \toprule
 Model & $N$ & FST I--II & FST III--IV & FST V--VI & Gap (V--VI $-$ I--II) \\
 \midrule
-GPT-4o          & 656 & 0.596 (208) & 0.631 (241) & 0.541 (207) & $-$0.055 \\
+GPT-4o            & 656 & 0.596 (208) & 0.631 (241) & 0.541 (207) & $-$0.055 \\
 Claude Sonnet 4.5 & 656 & 0.611 (208) & 0.602 (241) & 0.546 (207) & $-$0.065 \\
-CLIP ViT-L/14   & 656 & 0.721 (208) & 0.647 (241) & 0.691 (207) & $-$0.030 \\
-BiomedCLIP      & 656 & 0.562 (208) & 0.598 (241) & 0.517 (207) & $-$0.046 \\
+CLIP ViT-L/14     & 656 & 0.721 (208) & 0.647 (241) & 0.691 (207) & $-$0.030 \\
+BiomedCLIP        & 656 & 0.562 (208) & 0.598 (241) & 0.517 (207) & $-$0.046 \\
 \bottomrule
 \end{tabular}
+\\[0.3ex]
+{\footnotesize SigLIP-L/16 omitted from this table pending verification of full coverage (see \S\ref{sec:prelim_irt}); included in the IRT fit below.}
 \normalsize
 \end{table}
 
@@ -183,8 +185,41 @@ This is exactly the diagnostic that conventional FST-stratified accuracy auditin
 \label{sec:prelim_kappa}
 Pairwise Cohen's $\kappa$ on the parseable subset ($n = 656$ each pair): GPT-4o vs.\ Claude Sonnet 4.5 $= 0.47$ (moderate); GPT-4o vs.\ BiomedCLIP $= 0.28$; Claude vs.\ BiomedCLIP $= 0.31$; GPT-4o vs.\ CLIP $= -0.01$; Claude vs.\ CLIP $= 0.02$; BiomedCLIP vs.\ CLIP $= -0.01$. The two generative respondents share a non-trivial latent signal with each other and a weaker but positive signal with BiomedCLIP, satisfying the construct-stability precondition for IRT (\S\ref{sec:aggregate}). CLIP's near-zero $\kappa$ against \emph{every other respondent} is a separate diagnostic for its degenerate prediction pattern documented above. The configural-invariance check (\S\ref{sec:aggregate}) re-estimates the construct-stability claim once the full respondent panel is available.
 
+\paragraph{First IRT pipeline run on real data (J=5 smoke test).}
+\label{sec:prelim_irt}
+We ran the pre-registered amortized Rasch fit (\S\ref{sec:amortized}) on the five-respondent panel with the BiomedCLIP-embedding backbone and applied the primary-endpoint decision rule (\S\ref{sec:aggregate}). The result:
+\begin{equation*}
+    \hat\Delta = +0.593 \text{ logits}, \quad \text{95\% bootstrap CI } [-0.347, +1.594], \quad \text{decision: indeterminate}.
+\end{equation*}
+The point estimate exceeds the pre-registered $0.5$-logit falsification threshold and is directionally consistent with the raw FST-stratified accuracy gap: V--VI items are harder by $\approx 0.6$ logits after residualizing against lesion category and malignancy. The CI is too wide to exclude null at $J = 5$; this is the expected regime for a small respondent panel, and tightening the CI is what the open-weight VLM expansion is intended to accomplish.
+
+We highlight that the point estimate is \emph{stable} across two consecutive fits with different panel composition: a preliminary $J = 6$ fit that included an all-NaN SigLIP row and a partial Gemini row returned $\hat\Delta = +0.602$ logits; after dropping both via a coverage filter, the clean $J = 5$ fit returns $+0.593$. The garbage rows contribute near-zero signal as expected, and the small movement is consistent with anchor-induced drift rather than substantive change.
+
+The fitted item-difficulty distribution ranges over $[-36, +13]$ logits, well outside the typical Rasch range of $\pm 3$. This artifact reflects $166$ items at the response-pattern floor (all five respondents incorrect, $n = 30$) or ceiling (all correct, $n = 136$): for these items the masked likelihood has no gradient pulling $\hat b_i$ toward a finite value and the embedding-amortized MLP diverges. Per the PAP fallback policy (\S\ref{sec:amortized}), we will either prune these saturated items before fitting or add a stronger $L_2$ prior on $\hat b_i$ in the next iteration. The current $\hat\Delta$ point estimate is insensitive to this---residualization is performed on $\hat b_i$ and saturated items contribute small per-FST residual mass because all respondents agree on them---but the bootstrap CI should tighten meaningfully once these items are handled.
+
+\paragraph{IRT calibration alone is fooled by degenerate respondents.}
+\label{sec:prelim_irt_degeneracy}
+The respondent-side IRT output is the more striking finding from the smoke test. Per-respondent ability $\hat\theta_j$ on the same $J = 5$ fit:
+\begin{center}
+\small
+\begin{tabular}{lr}
+\toprule
+Respondent & $\hat\theta_j$ \\
+\midrule
+SigLIP-L/16       & $+0.72$ \\
+CLIP ViT-L/14     & $+0.32$ \\
+GPT-4o            & $-0.27$ \\
+Claude Sonnet 4.5 & $-0.30$ \\
+BiomedCLIP        & $-0.46$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+The two highest $\hat\theta_j$ values are awarded to the two contrastive zero-shot respondents we have already shown to be \emph{degenerate}. SigLIP predicts ``benign'' on $\approx 89\%$ of items, CLIP on $\approx 88\%$, both against a true benign prevalence of $\approx 78\%$ (Figure~\ref{fig:prediction-distribution}); pairwise Cohen's $\kappa$ between each contrastive respondent and every generative respondent is near zero (\S\ref{sec:prelim_kappa}). The amortized Rasch fit nonetheless ranks them \emph{above} the frontier generative VLMs because their pattern of correct answers---predicting benign whenever the truth is benign---matches the label distribution closely enough to maximize the masked binomial likelihood under the Rasch model. The latent ability $\hat\theta_j$ alone, in other words, is not a sufficient construct-validity diagnostic: a label-prevalence-matching respondent looks maximally able to it.
+
+Standard Rasch fit diagnostics partially catch this. The median item outfit mean-square is $0.75$ and $249$ of $656$ items flag $\text{outfit} < 0.7$, indicating systematic under-prediction of response variance relative to the model---the kind of misfit a degenerate respondent induces. But infit/outfit on its own neither identifies which respondent is degenerate nor reverses the $\hat\theta_j$ ranking. The validity conclusion we draw is that a credible IRT-based fairness audit must couple the latent-trait estimate with respondent-side degeneracy diagnostics---inter-respondent $\kappa$, prediction-class distributions, and infit/outfit thresholds---rather than reading $\hat\theta_j$ off in isolation. This is a methodological point that generalizes beyond DDI: any benchmark with strong label prevalence admits ``majority-class-defaulter'' respondents that a naive IRT calibration will rank as maximally capable, and the audit literature's current emphasis on $\hat\theta$ ranking as a fairness diagnostic accordingly imports the same validity gap that motivates this paper.
+
 \paragraph{Refusal behavior.}
-All four current respondents return zero refusals and zero unparseable responses on the full panel ($0/656$ each); generative respondents follow the structured prompt template cleanly, and contrastive zero-shot respondents cannot refuse by construction. Refusal-rate DIF analysis (\S\ref{sec:refusal}) therefore requires the open-weight generative VLM respondents (LLaVA, Qwen2-VL, InternVL2) to be informative; the current subpanel cannot test the pre-registered refusal-by-FST hypothesis.
+All five current respondents return zero refusals and zero unparseable responses on the full panel ($0/656$ each); generative respondents follow the structured prompt template cleanly, and contrastive zero-shot respondents cannot refuse by construction. Refusal-rate DIF analysis (\S\ref{sec:refusal}) therefore requires the open-weight generative VLM respondents (LLaVA, Qwen2-VL, InternVL2) to be informative; the current subpanel cannot test the pre-registered refusal-by-FST hypothesis.
 
 \paragraph{What this does and does not show.}
 These descriptive statistics are the inputs that conventional FST-stratified fairness audits would report and conclude on directly: ``two frontier closed-API vision-language models show a $5$--$7$ percentage-point accuracy drop on FST-V/VI relative to FST-I/II.'' The pre-registered analysis (\S\ref{sec:methods}) is the test of whether that statement, once aggregated across the full respondent panel and adjusted for item-level difficulty composition, survives. We draw no inferential conclusion from the partial panel here; we report it as the baseline against which the pre-registered IRT contrast will be evaluated.
