@@ -3,11 +3,19 @@
 aggregate_dif:
   primary_endpoint: residualized_difficulty_shift
   comparison_groups:
-    focal: [V, VI]
-    reference: [I, II]
+    # FST groups are encoded as paired strings ("I-II", "III-IV", "V-VI")
+    # in the loader; the prereg-v1 config had [V, VI] / [I, II] which match
+    # zero items in this encoding. Deviation 2026-05-20: corrected to the
+    # paired-string form so the pre-registered V--VI vs I--II contrast can
+    # actually be computed. No change to the analytic intent.
+    focal: ["V-VI"]
+    reference: ["I-II"]
   residualize_against:
+    # The DataFrame column is `malignant` (the malignancy-status boolean);
+    # prereg-v1 had `malignancy` which is a KeyError. Deviation 2026-05-20:
+    # corrected to the existing column name.
     - lesion_category
-    - malignancy
+    - malignant
   bootstrap:
     n_resamples: 2000
     resample_units: [items, models]   # paired bootstrap over both
@@ -37,9 +45,9 @@ lltm:
     - name: M1
       features: [lesion_category]
     - name: M2
-      features: [lesion_category, malignancy]
+      features: [lesion_category, malignant]
     - name: M3
-      features: [lesion_category, malignancy, image_resolution, mean_luminance, color_channel_stats]
+      features: [lesion_category, malignant, image_resolution, mean_luminance, color_channel_stats]
     - name: M4
       features: [lesion_category, malignancy, image_resolution, mean_luminance, color_channel_stats, fst_group]
   primary_coefficient: fst_group
