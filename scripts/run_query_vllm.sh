@@ -26,8 +26,8 @@ VLLM_PORT=8765
 LOG_DIR=$PROJECT_ROOT/logs/vllm
 mkdir -p "$LOG_DIR"
 
-ml python/3.12.1 cuda/11.7.1
-source "$PROJECT_ROOT/.venv/bin/activate"
+ml python/3.9.0 cuda/11.7.1
+source "$PROJECT_ROOT/.gpu_venv/bin/activate"
 export PIP_USER=false
 export HF_HOME=/scratch/users/$USER/huggingface
 export HF_DATASETS_CACHE=/scratch/users/$USER/huggingface/datasets
