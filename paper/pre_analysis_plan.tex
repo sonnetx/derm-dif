@@ -146,16 +146,18 @@ Table~\ref{tab:prelim-fst-accuracy} reports per-model accuracy under the binary 
 \centering
 \caption{Baseline FST-stratified accuracy (four-respondent preliminary panel: 2 closed-API generative, 2 contrastive zero-shot). Per-model proportion of items answered correctly under the binary benign-vs-malignant protocol. The right-most column is the V--VI minus I--II accuracy gap that conventional fairness audits would report; the pre-registered Rasch-difficulty analysis (\S\ref{sec:aggregate}) tests whether this gap reflects differential capability or differential item difficulty. Item counts per FST group in parentheses.}
 \label{tab:prelim-fst-accuracy}
+\small
 \begin{tabular}{lrrrrr}
 \toprule
 Model & $N$ & FST I--II & FST III--IV & FST V--VI & Gap (V--VI $-$ I--II) \\
 \midrule
-openai/gpt-4o-2024-11-20    & 656 & 0.596 (208) & 0.631 (241) & 0.541 (207) & $-$0.055 \\
-anthropic/claude-sonnet-4-5 & 656 & 0.611 (208) & 0.602 (241) & 0.546 (207) & $-$0.065 \\
-openai/clip-vit-large-patch14 & 656 & 0.721 (208) & 0.647 (241) & 0.691 (207) & $-$0.030 \\
-microsoft/BiomedCLIP-PubMedBERT\_256-vit\_base\_patch16\_224 & 656 & 0.562 (208) & 0.598 (241) & 0.517 (207) & $-$0.046 \\
+GPT-4o          & 656 & 0.596 (208) & 0.631 (241) & 0.541 (207) & $-$0.055 \\
+Claude Sonnet 4.5 & 656 & 0.611 (208) & 0.602 (241) & 0.546 (207) & $-$0.065 \\
+CLIP ViT-L/14   & 656 & 0.721 (208) & 0.647 (241) & 0.691 (207) & $-$0.030 \\
+BiomedCLIP      & 656 & 0.562 (208) & 0.598 (241) & 0.517 (207) & $-$0.046 \\
 \bottomrule
 \end{tabular}
+\normalsize
 \end{table}
 
 \paragraph{Per-model prediction-distribution patterns (Figure~\ref{fig:prediction-distribution}).}
@@ -170,7 +172,7 @@ The accuracy table conceals dramatically different per-model calibration regimes
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\linewidth]{../artifacts/prelim/prediction_distribution.pdf}
+\includegraphics[width=\linewidth]{figures/prediction_distribution.pdf}
 \caption{Per-model prediction-distribution by FST stratum. Stacked bars show the proportion of ``benign'' (blue) vs.\ ``malignant'' (orange) predictions on the parseable subset; the black horizontal tick on each bar marks the \emph{true} malignancy share in that stratum. CLIP's near-flat blue dominance in FST-I/II is a degenerate-classifier signature; the IRT calibration in \S\ref{sec:aggregate} characterizes this through low $\hat\theta$ and inflated outfit.}
 \label{fig:prediction-distribution}
 \end{figure}
