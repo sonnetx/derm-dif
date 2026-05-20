@@ -71,6 +71,13 @@ def main() -> None:
         "(e.g., api-openai,api-anthropic,contrastive-zeroshot). "
         "Default: all non-optional models in the config.",
     )
+    ap.add_argument(
+        "--min-coverage",
+        type=int,
+        default=600,
+        help="Drop respondents with fewer than this many parseable "
+        "responses (default: 600 of 656 DDI items).",
+    )
     args = ap.parse_args()
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
@@ -90,6 +97,23 @@ def main() -> None:
     Y, R, _ = build_response_matrix(
         args.responses, items, model_ids, protocol["parsing"]["refusal_markers"]
     )
+
+    # Drop respondents with too few parsed responses. Otherwise SigLIP-failed
+    # (all-NaN) or Gemini-partial (e.g., 246/656) rows pollute the fit with
+    # uninformative anchor mass and bias the difficulty estimates.
+    n_valid = (~np.isnan(Y)).sum(axis=1)
+    keep = n_valid >= args.min_coverage
+    dropped = [model_ids[j] for j in range(len(model_ids)) if not keep[j]]
+    if dropped:
+        print(f"Dropping {len(dropped)} respondents below --min-coverage={args.min_coverage}: {dropped}")
+    Y = Y[keep]
+    R = R[keep]
+    model_ids = [model_ids[j] for j in range(len(model_ids)) if keep[j]]
+    families = [families[j] for j in range(len(families)) if keep[j]]
+    if not model_ids:
+        raise SystemExit("no respondents meet --min-coverage threshold")
+    print(f"Fitting on {len(model_ids)} respondents x {Y.shape[1]} items")
+
     np.save(args.out_dir / "responses_matrix.npy", Y)
     np.save(args.out_dir / "refusal_matrix.npy", R)
 
