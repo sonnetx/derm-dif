@@ -80,10 +80,11 @@ pip3 install --no-cache-dir Pillow PyYAML einops open_clip_torch "transformers>=
 # Closed-API SDKs for script 02 (query phase).
 pip3 install --no-cache-dir openai anthropic google-genai
 
-# vLLM is intentionally NOT installed in this 3.12 venv. xformers does not
-# ship prebuilt wheels for Python 3.12 + torch 2.4 + cu118, so vllm's build
-# fails here. Install vllm in a separate Python 3.9 venv ($PROJECT/.gpu_venv)
-# per the recipe in scripts/run_query_vllm.sh's header.
+# vLLM is intentionally NOT pip-installed here. Sherlock provides a cluster
+# module py-vllm/0.7.0_py312 (load via `ml math py-vllm/0.7.0_py312`) that
+# ships its own torch + xformers + flash-attn built against the cluster's
+# CUDA, so we use that for the open-weight VLM panel rather than fighting
+# pip's build isolation. See scripts/run_query_vllm.sh.
 
 # Editable install of derm-dif itself.
 pip3 install --no-cache-dir -e "$PROJECT_ROOT"

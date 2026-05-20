@@ -26,8 +26,14 @@ VLLM_PORT=8765
 LOG_DIR=$PROJECT_ROOT/logs/vllm
 mkdir -p "$LOG_DIR"
 
-ml python/3.9.0 cuda/11.7.1
-source "$PROJECT_ROOT/.gpu_venv/bin/activate"
+# Use Sherlock's cluster-provided vllm module (built for Python 3.12) so we
+# don't have to source-build xformers in our own venv. The module loads its
+# own python/3.12 + cuda; we grab the vllm binary path and then activate our
+# project venv so the python client has derm_dif on sys.path.
+ml math py-vllm/0.7.0_py312 cuda/11.7.1
+VLLM_BIN=$(which vllm)
+echo "==> Using cluster vllm at $VLLM_BIN"
+source "$PROJECT_ROOT/.venv/bin/activate"
 export PIP_USER=false
 export HF_HOME=/scratch/users/$USER/huggingface
 export HF_DATASETS_CACHE=/scratch/users/$USER/huggingface/datasets
@@ -38,7 +44,7 @@ mkdir -p "$HF_HOME" "$TORCH_HOME" "$TMPDIR"
 cd "$PROJECT_ROOT"
 
 echo "==> Starting vLLM for $MODEL_ID on port $VLLM_PORT"
-vllm serve "$MODEL_ID" \
+"$VLLM_BIN" serve "$MODEL_ID" \
     --port "$VLLM_PORT" \
     --max-model-len 4096 \
     --dtype auto \
