@@ -80,6 +80,12 @@ pip3 install --no-cache-dir Pillow PyYAML einops open_clip_torch "transformers>=
 # Closed-API SDKs for script 02 (query phase).
 pip3 install --no-cache-dir openai anthropic google-genai
 
+# vLLM for serving open-weight VLMs (script 02's huggingface backend).
+# Pinned to the cu118-wheels line to match our torch==2.4.0 +cu118 install.
+# If vllm install fails on this cluster's CUDA version, fall back to running
+# the open-weight panel via a dedicated GPU job with a fresh venv.
+pip3 install --no-cache-dir vllm
+
 # Editable install of derm-dif itself.
 pip3 install --no-cache-dir -e "$PROJECT_ROOT"
 

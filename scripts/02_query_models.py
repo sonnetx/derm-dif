@@ -40,6 +40,13 @@ def main() -> None:
         help="Comma-separated list of model `source` values to include "
         "(e.g., api-openai,api-anthropic,api-google). Default: all sources.",
     )
+    ap.add_argument(
+        "--model-id",
+        default=None,
+        help="Restrict to a single model.id from models.yaml (e.g., "
+        "llava-hf/llava-1.5-13b-hf). Useful when serving one open-weight VLM "
+        "at a time via vLLM. Applies after --source filtering.",
+    )
     args = ap.parse_args()
 
     items = load_ddi(args.ddi_root)
@@ -55,6 +62,10 @@ def main() -> None:
     if args.source:
         allowed = {s.strip() for s in args.source.split(",")}
         specs = [s for s in specs if s.source in allowed]
+    if args.model_id:
+        specs = [s for s in specs if s.id == args.model_id]
+        if not specs:
+            raise SystemExit(f"--model-id {args.model_id!r} did not match any model in the config")
 
     done = already_done(args.out)
     total = len(specs) * len(items)
