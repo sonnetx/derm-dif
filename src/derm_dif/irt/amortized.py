@@ -22,6 +22,12 @@ class AmortizedRaschConfig:
     n_models: int
     hidden_dim: int = 128
     ability_l2: float = 1e-2
+    # Soft prior on item difficulty to keep b_i bounded on items where the
+    # response pattern is saturated (all-correct or all-wrong across the
+    # panel). Without it, the masked likelihood has no gradient on those
+    # items and the MLP diverges to extreme values (we observed b_i in
+    # [-36, +13] on a J=5 fit, vs. the typical Rasch range of about pm 3).
+    difficulty_l2: float = 1e-2
     weight_decay: float = 1e-4
     lr: float = 5e-3
     n_epochs: int = 2000
@@ -95,7 +101,10 @@ def fit_amortized_rasch(
         # Anchor identifiability: center theta to mean zero (Rasch is invariant
         # to constant shift; pinning the centroid removes the indeterminacy).
         anchor = (theta.mean()) ** 2
-        prior = config.ability_l2 * (theta**2).sum()
+        prior = (
+            config.ability_l2 * (theta**2).sum()
+            + config.difficulty_l2 * (b**2).sum()
+        )
         loss = -ll + prior + 1e3 * anchor
         loss.backward()
         opt.step()
