@@ -64,14 +64,27 @@ def main() -> None:
     ap.add_argument("--out-dir", type=Path, default=Path("artifacts/rasch"))
     ap.add_argument("--embedding-backend", choices=["biomedclip", "dinov3"], default="biomedclip")
     ap.add_argument("--seed", type=int, default=0xDD1F)
+    ap.add_argument(
+        "--source",
+        default=None,
+        help="Comma-separated list of model `source` values to include "
+        "(e.g., api-openai,api-anthropic,contrastive-zeroshot). "
+        "Default: all non-optional models in the config.",
+    )
     args = ap.parse_args()
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     items = load_ddi(args.ddi_root)
     models_cfg = yaml.safe_load(args.models_config.read_text())
     protocol = yaml.safe_load(args.protocol_config.read_text())["primary_protocol"]
-    model_ids = [m["id"] for m in models_cfg["models"] if not m.get("optional", False)]
-    families = [m["family"] for m in models_cfg["models"] if not m.get("optional", False)]
+    eligible = [m for m in models_cfg["models"] if not m.get("optional", False)]
+    if args.source:
+        allowed = {s.strip() for s in args.source.split(",")}
+        eligible = [m for m in eligible if m["source"] in allowed]
+    model_ids = [m["id"] for m in eligible]
+    families = [m["family"] for m in eligible]
+    if not model_ids:
+        raise SystemExit("no models match the requested --source filter")
     assert_no_circularity(args.embedding_backend, families)
 
     Y, R, _ = build_response_matrix(
