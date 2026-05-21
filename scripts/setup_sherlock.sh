@@ -75,7 +75,7 @@ pip3 install --no-cache-dir --only-binary :all: scikit-learn==1.4.2
 # (BiomedCLIP uses PubMedBERT via the HF integration). Pin to the 4.x line:
 # transformers 5.x uses torch.library.custom_op schema inference that needs
 # torch >= 2.6, which would conflict with the cu118-wheel torch==2.4.0 above.
-pip3 install --no-cache-dir Pillow PyYAML einops open_clip_torch "transformers>=4.40,<5" sentencepiece protobuf matplotlib pytest
+pip3 install --no-cache-dir Pillow PyYAML einops open_clip_torch "transformers>=4.40,<5" sentencepiece protobuf matplotlib torchmetrics pytest
 
 # Closed-API SDKs for script 02 (query phase).
 pip3 install --no-cache-dir openai anthropic google-genai

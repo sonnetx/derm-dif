@@ -11,6 +11,7 @@ transformers>=4.40,<5   # required by open_clip for BiomedCLIP's HF text tower; 
 sentencepiece>=0.2     # required by SigLIP's tokenizer through transformers
 protobuf>=4.25         # also required by SigLIP's tokenizer (sentencepiece -> protobuf)
 matplotlib>=3.8        # figures for the paper
+torchmetrics>=1.0      # required by facebookresearch/dinov3's hubconf
 requests>=2.31
 # API SDKs (install only those you use)
 openai>=1.40
