@@ -220,6 +220,30 @@ The two highest $\hat\theta_j$ values are awarded to the two contrastive zero-sh
 
 Standard Rasch fit diagnostics partially catch this. The median item outfit mean-square is $0.75$ and $249$ of $656$ items flag $\text{outfit} < 0.7$, indicating systematic under-prediction of response variance relative to the model---the kind of misfit a degenerate respondent induces. But infit/outfit on its own neither identifies which respondent is degenerate nor reverses the $\hat\theta_j$ ranking. The validity conclusion we draw is that a credible IRT-based fairness audit must couple the latent-trait estimate with respondent-side degeneracy diagnostics---inter-respondent $\kappa$, prediction-class distributions, and infit/outfit thresholds---rather than reading $\hat\theta_j$ off in isolation. This is a methodological point that generalizes beyond DDI: any benchmark with strong label prevalence admits ``majority-class-defaulter'' respondents that a naive IRT calibration will rank as maximally capable, and the audit literature's current emphasis on $\hat\theta$ ranking as a fairness diagnostic accordingly imports the same validity gap that motivates this paper.
 
+\paragraph{LLTM mechanism decomposition (\S\ref{sec:lltm}).}
+\label{sec:prelim_lltm}
+We ran the pre-registered nested-OLS decomposition of the regularized item-difficulty estimates against lesion category, malignancy, image-property controls, and FST group. Variance explained at each nesting step ($n = 656$ items, 2000-resample bootstrap):
+\begin{center}
+\small
+\begin{tabular}{lcl}
+\toprule
+Model & $R^2$ & Added control \\
+\midrule
+M0 (intercept) & $0.000$ & --- \\
+M1 (+ lesion category) & $0.422$ & 75-level lesion-category one-hot \\
+M2 (+ malignancy) & $0.422$ & malignancy boolean \\
+M3 (+ image features) & $0.428$ & resolution, mean luminance, luminance sd \\
+M4 (+ FST) & $0.428$ & FST group dummies (I/II reference) \\
+\bottomrule
+\end{tabular}
+\end{center}
+Three observations dominate. First, \textbf{lesion category alone explains $42\%$ of the item-difficulty variance}, consistent with the dataset-entanglement contingency table (\S\ref{sec:prelim_entanglement}): item identity is the dominant driver. Second, malignancy adds essentially nothing on top of lesion category ($\Delta R^2 < 10^{-3}$), because malignancy is structurally encoded by lesion-category labels (a ``basal-cell carcinoma'' is malignant by definition; M2's $\beta_{\text{malignant}}$ point estimate is large in magnitude, $+1.90$ logits, but with CI $[-0.83, +4.76]$ that fully covers zero). Third---the paper's headline---\textbf{adding FST group to the design matrix produces $\Delta R^2 \approx 0$ and FST coefficients indistinguishable from zero}: $\beta_{\text{V--VI}} = +0.041$ logits, 95\% bootstrap CI $[-0.359, +0.460]$. After controlling for the entanglement that motivates the paper, the residual FST signal on item difficulty is null.
+
+Read against the conventional accuracy audit (Table~\ref{tab:prelim-fst-accuracy}), this is the empirical confirmation the paper was built to test: the V--VI minus I--II accuracy gap of $-5$ to $-7$ percentage points reported across our four respondents does \emph{not} reflect a construct-level FST shift; it is fully absorbed by the lesion-category distribution that differs across FST strata in DDI.
+
+\paragraph{Configural-invariance check (\S\ref{sec:aggregate}).}
+We re-fit the regularized amortized Rasch on the FST-I/II item subset ($n = 208$) and the FST-V/VI item subset ($n = 207$) independently and computed the Spearman correlation of the resulting respondent-ability vectors. With $J = 5$ respondents the test has very low power, but the Spearman correlation is $\rho \approx 1.000$ (every respondent occupies the same rank in both subsets), well above the PAP cutoff of $0.9$. Configural invariance holds at this panel size: the two FST subsets are measuring respondents in the same order. Notably, SigLIP's $\hat\theta$ \emph{grows} from $+0.74$ (I--II subset) to $+1.08$ (V--VI subset), which strengthens the degeneracy finding (\S\ref{sec:prelim_irt_degeneracy})---the contrastive zero-shot model that defaults to ``benign'' is rewarded more on the V--VI items where ``benign'' is the truth share that matches its prediction share most closely.
+
 \paragraph{Refusal behavior.}
 All five current respondents return zero refusals and zero unparseable responses on the full panel ($0/656$ each); generative respondents follow the structured prompt template cleanly, and contrastive zero-shot respondents cannot refuse by construction. Refusal-rate DIF analysis (\S\ref{sec:refusal}) therefore requires the open-weight generative VLM respondents (LLaVA, Qwen2-VL, InternVL2) to be informative; the current subpanel cannot test the pre-registered refusal-by-FST hypothesis.
 
