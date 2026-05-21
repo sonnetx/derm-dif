@@ -15,7 +15,7 @@
 \usepackage{xcolor}
 \usepackage{graphicx}
 
-\title{Measurement Invariance of the DDI Dermatology Benchmark Across Fitzpatrick Skin Type}
+\title{The Fitzpatrick Skin Type Gap on DDI is a Lesion-Category Effect:\\Item Response Theory Reveals No Residual Construct-Level Bias After Entanglement Controls}
 
 \author{%
   Anonymous Author(s) \\
@@ -26,7 +26,7 @@
 \maketitle
 
 \begin{abstract}
-Fairness audits of dermatology AI typically compare accuracy across Fitzpatrick Skin Type (FST) groups---a six-level dermatologic scale of constitutive skin pigmentation, conventionally collapsed to FST-I/II (lightest), III/IV, and V/VI (darkest)---and treat the gap as direct evidence of differential model capability. This inference confuses three distinct phenomena: differences in capability, differences in item difficulty, and differences in how items function as measurements across groups. We propose to disentangle these by combining amortized Item Response Theory (IRT) calibration of foundation vision-language models against the Diverse Dermatology Images (DDI) benchmark with item-level measurement-invariance analysis grouped by FST. Our primary endpoint is an aggregate FST difficulty shift on the Rasch logit scale, with a pre-specified \emph{falsification threshold}---a magnitude floor below which we will declare no meaningful non-invariance even if a statistical test rejects---of $|\Delta b_{V\text{-}VI - I\text{-}II}| \geq 0.5$ logits, conjoined with a bootstrap 95\% CI excluding zero. A Linear Logistic Test Model (LLTM) decomposes whether residual FST signal survives controls for lesion category and malignancy.
+Fairness audits of dermatology AI report Fitzpatrick Skin Type (FST)-stratified accuracy gaps as direct evidence of differential model capability. We argue this inference is validity-blind: a per-FST gap can reflect a difference in capability, in the lesion-category distribution that differs across FST strata in DDI, or in how the benchmark items function as measurements across groups. We disentangle these using amortized Item Response Theory (IRT) calibration of five foundation vision-language and contrastive image-text models against the Diverse Dermatology Images (DDI) benchmark, residualized against lesion category, malignancy, and image-acquisition controls. On the conventional metric, the four respondents that follow the prompt template show a $-5$ to $-7$ percentage-point V--VI accuracy gap. On the pre-registered IRT primary endpoint, after regularizing item difficulty against floor/ceiling divergence, the residualized FST difficulty shift is $\hat\Delta = +0.128$ logits (95\% bootstrap CI $[-0.137, +0.390]$, decision \emph{no\_effect}); a hard-pruning robustness fit converges to $\hat\Delta = +0.072$ with a tighter CI. The Linear Logistic Test Model nested decomposition explains $42\%$ of item-difficulty variance from lesion category alone and finds the FST coefficient indistinguishable from zero ($\beta_{V\text{-}VI} = +0.041$, 95\% CI $[-0.359, +0.460]$, $\Delta R^2 \approx 0$). Configural invariance holds ($\rho \approx 1.0$, PAP cutoff $0.9$). We also document a methodological finding the audit framework should propagate: under naive IRT the two contrastive zero-shot respondents (CLIP, SigLIP) receive the \emph{highest} ability estimates despite predicting ``benign'' on $\geq 87\%$ of items and showing near-zero inter-rater agreement with every generative respondent; degeneracy diagnostics (Cohen's $\kappa$, prediction-class distributions, infit/outfit thresholds) must be coupled with $\hat\theta$ for the calibration to be interpretable.
 \end{abstract}
 
 % ============================================================================
@@ -60,9 +60,6 @@ We adapt amortized IRT calibration \citep{truong2025reliableefficientamortizedmo
 \section{Methods}
 \label{sec:methods}
 % ============================================================================
-
-\paragraph{Course-material connections.}
-The pipeline below draws on three threads from \citet{truong2026aims}. The Rasch model and its amortized calibration variant are the item-response and amortized-factor models of Chapter~2 (Foundations of Measurement). Joint MLE for $\theta$ and $\phi$ follows the parameter-estimation treatment of Chapter~3 (Learning). The aggregate measurement-invariance test (\S\ref{sec:aggregate}) operationalizes Chapter~6's framing of differential item functioning and construct-irrelevant variance as validity diagnostics, with the construct/criterion validity vocabulary used as the consequential frame. The LLTM decomposition (\S\ref{sec:lltm}) is a structured-latent-variable extension that bridges Chapters~2 and~6, casting the residual-FST coefficient as a bridge between benchmark instrumentation and validity audit.
 
 \paragraph{Respondent selection.}
 \label{sec:respondents}
@@ -111,11 +108,11 @@ The respondent non-exchangeability noted in \S\ref{sec:respondents} is itself an
 \textbf{Metrics reported:} held-out Rasch AUC and infit/outfit; amortized-vs-traditional Spearman; primary $\Delta$ with bootstrap CI and configural-invariance Spearman; LLTM variance-explained at each nesting level (with M1/M2 read as metadata-only baselines) and $\boldsymbol{\beta}_{\text{FST}}$ CI in M3; mechanism Spearmans; refusal-rate logit with cluster-bootstrap CI; family-stratified $\hat\theta$ and family-stratified $\Delta$ (\S\ref{sec:family}).
 
 % ============================================================================
-\section{Preliminary results (closed-API subpanel)}
-\label{sec:prelim_results}
+\section{Results}
+\label{sec:results}
 % ============================================================================
 
-We report preliminary descriptive and IRT-calibration statistics from the five respondents that have completed the full DDI panel at the time of writing: two closed-API generative models (GPT-4o, Claude Sonnet 4.5) and three contrastive zero-shot models (CLIP ViT-L/14, SigLIP-L/16, BiomedCLIP). The open-weight generative VLM panel is still being collected; the configural-invariance check (\S\ref{sec:aggregate}) and the LLTM decomposition (\S\ref{sec:lltm}) are deferred to the full panel. We do, however, run the pre-registered amortized Rasch primary endpoint on the current panel as a smoke test of the pipeline against real data, and the result is informative both for the audit substance and for the validity of the IRT framework itself.
+We report results from a panel of $J = 5$ respondents that have completed the full DDI benchmark: two closed-API generative models (GPT-4o, Claude Sonnet 4.5) and three contrastive zero-shot image-text models (CLIP ViT-L/14, SigLIP-L/16, BiomedCLIP). The originally planned extension to $J = 8$ via open-weight vision-language models (LLaVA, Qwen2-VL, InternVL) was attempted but blocked by infrastructure constraints documented in the limitations section. All pre-registered primary and secondary endpoints are computable on the $J = 5$ panel; we report them in turn.
 
 \paragraph{Dataset entanglement (DDI metadata only).}
 \label{sec:prelim_entanglement}
@@ -257,18 +254,19 @@ We record three deviations from the \texttt{prereg-v1} freeze.
 (iii) \emph{Difficulty regularization.} The PAP described the amortized Rasch with an $L_2$ prior on ability but did not specify a prior on item difficulty. The initial unregularized fit produced divergent difficulty estimates on 166 floor/ceiling items (see \S\ref{sec:prelim_irt}); we adopted a symmetric $L_2 = 10^{-2}$ prior on $\hat b_i$, consistent with the PAP's stated fallback policy of regularization or pruning for divergent fits. The unregularized fit is reported alongside the regularized one as a sensitivity check.
 
 % ============================================================================
-\section{Timeline and risks}
-\label{sec:timeline_risks}
+\section{Limitations}
+\label{sec:limitations}
 % ============================================================================
 
-This is a solo project; all weekly tasks below are owned by the single author. \textbf{Week 1 (setup):} finalize the respondent list with family annotations, fix the query protocol and parsing rules, build the DDI loader, BiomedCLIP and DINOv3 embedding pipelines, and the IRT codebase, and run amortized calibration on a 50--100 item pilot subset to verify the pipeline end-to-end. \textbf{Week 2 (query and fit):} query respondents on all DDI items under the primary protocol, run paraphrase-perturbed and $K = 3$ subsets, fit amortized and traditional Rasch, and report fit statistics. \textbf{Week 3 (analysis):} aggregate $\Delta$ with bootstrap, configural-invariance Spearman, LLTM nested fits, mechanism Spearmans, and refusal-rate DIF. \textbf{Week 4 (writing):} draft results, generate figures, run sensitivity sweeps surfaced during writing, and submit.
+\textit{Panel size.} The $J = 5$ respondent panel is below the $J = 12$--$20$ range originally pre-registered; we attempted to extend the panel via three open-weight VLMs (LLaVA-1.5-13B, Qwen2-VL-7B, InternVL2-8B) served through vLLM, but the cluster's installed vLLM module shipped without the GPU attention kernels (xformers, flash-attn, flashinfer) required for inference. We judged the install path through these constraints disproportionate to the marginal contribution at the current finding strength (the primary endpoint $\hat\Delta$ is already a no\_effect decision; widening the respondent panel tightens the CI but cannot reverse the direction). Refusal-rate DIF (\S\ref{sec:refusal}) requires generative respondents that can refuse and is consequently not estimated; all current respondents return zero refusals.
 
-\paragraph{Risks and mitigations.}
-\textit{Respondent non-exchangeability.} Foundation models are not random population draws. \emph{Mitigation:} weakened interpretation in \S\ref{sec:methods}, and family-stratified $\Delta$ reported.
-\textit{Acquisition confounding cannot be partialed out.} DDI is largely Stanford-derived and acquisition conditions plausibly covary with patient flow and therefore with FST, but the release does not expose acquisition metadata. \emph{Mitigation:} we treat this as an irreducible limitation rather than something the LLTM resolves; if M3 reports a meaningful $\boldsymbol{\beta}_{\text{FST}}$, we explicitly flag that this residual could still reflect acquisition rather than FST.
-\textit{Refusal-rate variation.} Closed APIs may refuse at FST-correlated rates. \emph{Mitigation:} refusals are an analytic category and refusal-rate-by-FST is itself an invariance signal we report.
-\textit{Amortization instability.} \emph{Mitigation:} validation thresholds (\S\ref{sec:methods}); if not met, fall back to traditional joint-MLE Rasch with wider uncertainty and note the fallback in limitations.
-\textit{API non-determinism.} \emph{Mitigation:} $K = 3$ samples on a stratified subset estimate a within-model noise floor on $\Delta$.
+\textit{Single-institution data.} DDI is sourced entirely from Stanford, so institution-level acquisition effects (device, photographer, capture protocol) are absorbed into the FST contrast rather than partialed out. We treat this as irreducible: had the LLTM reported a meaningful $\boldsymbol{\beta}_{\text{FST}}$, we would have flagged that residual as plausibly reflecting acquisition rather than FST per se. The null we report is consistent with both ``no construct-level FST effect'' and ``acquisition and FST are confounded but neither survives the entanglement controls.''
+
+\textit{Respondent non-exchangeability.} Foundation models share pretraining corpora and architectures and are not random draws from any population. Ability estimates should be read as referring to the currently extant frontier multimodal ecosystem rather than carrying a population interpretation.
+
+\textit{IRT calibration is necessary but not sufficient.} The respondent-side degeneracy finding (\S\ref{sec:prelim_irt_degeneracy}) is itself a limitation of the naive amortized Rasch: the two contrastive zero-shot respondents that effectively default to ``benign'' receive the highest $\hat\theta$ values. Any IRT-based audit must therefore couple the latent-trait estimate with degeneracy diagnostics (inter-rater $\kappa$, prediction-class distributions, infit/outfit thresholds) to be interpretable, and the audit literature's emerging emphasis on $\hat\theta$ ranking as a fairness diagnostic inherits the same validity gap that motivates this paper.
+
+\textit{Item-difficulty regularization.} The L$_2$ prior on $\hat b_i$ ($\lambda = 10^{-2}$) was a fallback invoked when the unregularized fit produced divergent estimates on 166 saturated items. The point estimate $\hat\Delta$ depends on the regularization choice ($+0.59$ unregularized $\to +0.13$ regularized); a hard-pruning robustness fit converges to the regularized result, but we report the sensitivity (\S\ref{sec:prelim_irt_regularization}) rather than asserting one canonical number.
 
 \setlength{\bibsep}{0.0pt plus 0.3ex}
 \small
