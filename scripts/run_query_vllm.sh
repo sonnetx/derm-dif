@@ -43,6 +43,11 @@ mkdir -p "$HF_HOME" "$TORCH_HOME" "$TMPDIR"
 
 cd "$PROJECT_ROOT"
 
+# The cluster's py-vllm module does not ship xformers; vllm's default
+# attention backend imports it and the engine dies on first forward pass.
+# Force the torch SDPA backend instead (slightly slower, but no xformers dep).
+export VLLM_ATTENTION_BACKEND=TORCH_SDPA
+
 echo "==> Starting vLLM for $MODEL_ID on port $VLLM_PORT"
 "$VLLM_BIN" serve "$MODEL_ID" \
     --port "$VLLM_PORT" \
