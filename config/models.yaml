@@ -87,14 +87,16 @@ models:
     deterministic_decoding: false
     version: 2026-05-11
 
-  # --- Optional extension respondents (run if budget allows; documented as such) ---
+  # --- Closed-API extension respondents (originally pre-registered as "optional --
+  # run if budget allows"; activated 2026-05-21 to bring the panel from J=5 to
+  # J=8 after the open-weight VLM extension was blocked by vLLM infrastructure
+  # constraints documented in the paper limitations). ---
   - id: openai/gpt-4o-mini-2024-07-18
     family: gpt-4o
     modality: image-text
     source: api-openai
     deterministic_decoding: false
     version: 2024-07-18
-    optional: true
 
   - id: anthropic/claude-haiku-4-5-20251001
     family: claude
@@ -102,7 +104,6 @@ models:
     source: api-anthropic
     deterministic_decoding: false
     version: 2025-10-01
-    optional: true
 
 # Family-stratified DIF analysis groups.
 # Items must have at least 2 models per family in the family-stratified analysis;
