@@ -28,9 +28,18 @@ def load_backend(name: EmbeddingBackend, device: str = "cuda" if torch.cuda.is_a
         model.eval().to(device)
         return model, preprocess, 512
     if name == "dinov3":
-        model = torch.hub.load("facebookresearch/dinov3", "dinov3_vitl16")
-        model.eval().to(device)
+        # DINOv3 is loaded via transformers.AutoModel directly rather than the
+        # facebookresearch/dinov3 torch.hub path. The hubconf imports the full
+        # segmentation utilities (termcolor, torchmetrics, mmcv...), most of
+        # which are unused for image-classification embedding extraction.
+        # The HF repo is gated; HF_TOKEN must be set in the environment.
+        # Output: model(x).pooler_output -> (N, 1024) for ViT-L/16.
+        from transformers import AutoModel
         from torchvision import transforms
+
+        model_id = "facebook/dinov3-vitl16-pretrain-lvd1689m"
+        model = AutoModel.from_pretrained(model_id, torch_dtype=torch.float32)
+        model.eval().to(device)
 
         preprocess = transforms.Compose(
             [
@@ -65,6 +74,8 @@ def embed_images(
         x = torch.stack(batch).to(device)
         if backend == "biomedclip":
             feats = model.encode_image(x)
+        elif backend == "dinov3":
+            feats = model(x).pooler_output
         else:
             feats = model(x)
         feats = feats / feats.norm(dim=-1, keepdim=True).clamp_min(1e-8)

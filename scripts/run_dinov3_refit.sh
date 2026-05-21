@@ -26,6 +26,20 @@ export PIP_USER=false
 export HF_HOME=/scratch/users/$USER/huggingface
 export TORCH_HOME=/scratch/users/$USER/torch
 
+# DINOv3 is a gated model on HF. Source ~/.secrets to pick up HF_TOKEN
+# (or HUGGING_FACE_HUB_TOKEN). Fail loudly if it's missing rather than
+# letting the HF download silently 403.
+if [ -f "$HOME/.secrets" ]; then
+    set +u
+    source "$HOME/.secrets"
+    set -u
+fi
+if [ -z "${HF_TOKEN:-}${HUGGING_FACE_HUB_TOKEN:-}" ]; then
+    echo "ERROR: HF_TOKEN is not set. DINOv3 is gated on HuggingFace; export"
+    echo "  HF_TOKEN=<your-hf-token>  in ~/.secrets and resubmit."
+    exit 1
+fi
+
 cd "$PROJECT_ROOT"
 
 echo "----- Fitting amortized Rasch with DINOv3 embeddings -----"
