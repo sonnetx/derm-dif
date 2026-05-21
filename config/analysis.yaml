@@ -49,7 +49,7 @@ lltm:
     - name: M3
       features: [lesion_category, malignant, image_resolution, mean_luminance, color_channel_stats]
     - name: M4
-      features: [lesion_category, malignancy, image_resolution, mean_luminance, color_channel_stats, fst_group]
+      features: [lesion_category, malignant, image_resolution, mean_luminance, color_channel_stats, fst_group]
   primary_coefficient: fst_group
   bootstrap_n: 2000
 
