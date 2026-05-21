@@ -238,6 +238,24 @@ Three observations dominate. First, \textbf{lesion category alone explains $42\%
 
 Read against the conventional accuracy audit (Table~\ref{tab:prelim-fst-accuracy}), this is the empirical confirmation the paper was built to test: the V--VI minus I--II accuracy gap of $-5$ to $-7$ percentage points reported across our four respondents does \emph{not} reflect a construct-level FST shift; it is fully absorbed by the lesion-category distribution that differs across FST strata in DDI.
 
+\paragraph{Cross-backbone robustness (BiomedCLIP vs.\ DINOv3).}
+\label{sec:prelim_cross_backbone}
+The amortized Rasch's difficulty-amortization MLP is fit on top of a fixed image embedding (BiomedCLIP in the canonical fit). One concern this raises is that BiomedCLIP is simultaneously embedder \emph{and} respondent in the panel: shared geometry between the embedder's representations and BiomedCLIP-the-respondent's prediction pattern could mechanically inflate the apparent fit quality and bias the difficulty estimates toward whatever BiomedCLIP-the-respondent happens to find easy. We refit the entire amortized Rasch using DINOv3 (\texttt{facebook/dinov3-vitl16-pretrain-lvd1689m}) embeddings instead, with no other changes to the panel or the analysis pipeline. The result is essentially identical:
+
+\begin{center}
+\small
+\begin{tabular}{lccc}
+\toprule
+Embedding & $\hat\Delta$ & 95\% CI & Decision \\
+\midrule
+BiomedCLIP (canonical) & $+0.128$ & $[-0.137, +0.390]$ & no\_effect \\
+DINOv3 (robustness)     & $+0.109$ & $[-0.141, +0.381]$ & no\_effect \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Spearman correlations between the two fits: per-item difficulty $\rho = 0.965$, per-respondent ability $\rho = 1.000$ ($n_{\text{items}} = 656$; $n_{\text{respondents}} = 5$). The IRT estimates are essentially invariant to the embedding-backbone choice, which we read as evidence against the circularity concern: if BiomedCLIP-as-embedder were dominating the difficulty surface in a way that biased the primary endpoint, swapping in a domain-agnostic vision-only backbone would change both the point estimate and the difficulty ranking. Neither moved meaningfully.
+
 \paragraph{Configural-invariance check (\S\ref{sec:aggregate}).}
 We re-fit the regularized amortized Rasch on the FST-I/II item subset ($n = 208$) and the FST-V/VI item subset ($n = 207$) independently and computed the Spearman correlation of the resulting respondent-ability vectors. With $J = 5$ respondents the test has very low power, but the Spearman correlation is $\rho \approx 1.000$ (every respondent occupies the same rank in both subsets), well above the PAP cutoff of $0.9$. Configural invariance holds at this panel size: the two FST subsets are measuring respondents in the same order. Notably, SigLIP's $\hat\theta$ \emph{grows} from $+0.74$ (I--II subset) to $+1.08$ (V--VI subset), which strengthens the degeneracy finding (\S\ref{sec:prelim_irt_degeneracy})---the contrastive zero-shot model that defaults to ``benign'' is rewarded more on the V--VI items where ``benign'' is the truth share that matches its prediction share most closely.
 
