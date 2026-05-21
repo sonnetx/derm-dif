@@ -48,6 +48,7 @@ echo "==> Starting vLLM for $MODEL_ID on port $VLLM_PORT"
     --port "$VLLM_PORT" \
     --max-model-len 4096 \
     --dtype auto \
+    --trust-remote-code \
     > "$LOG_DIR/vllm_$SLURM_JOB_ID.log" 2>&1 &
 VLLM_PID=$!
 
