@@ -33,7 +33,7 @@ def main() -> None:
     attrs = pd.DataFrame(
         {
             "lesion_category": [it.lesion_category for it in items],
-            "malignancy": [it.malignant for it in items],
+            "malignant": [it.malignant for it in items],
             "fst_group": [it.fst_group for it in items],
         }
     )
