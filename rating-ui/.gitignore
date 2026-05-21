@@ -1,0 +1,9 @@
+# Local images bundled by scripts/build_rating_manifest.py.
+# Don't commit DDI image data into git; rebuild locally before deploying.
+images/
+*.png
+*.jpg
+*.jpeg
+
+# Vercel artifacts
+.vercel/
