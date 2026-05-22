@@ -50,6 +50,21 @@ lltm:
       features: [lesion_category, malignant, image_resolution, mean_luminance, color_channel_stats]
     - name: M4
       features: [lesion_category, malignant, image_resolution, mean_luminance, color_channel_stats, fst_group]
+    # Sensitivity: raw FST (no controls) — establishes that the raw effect exists.
+    - name: M_raw
+      features: [fst_group]
+    # Sensitivity: image features + FST, no lesion-category control.
+    # If beta_FST is nonzero here but zero in M4, mediation is via lesion_category,
+    # not via image quality/contrast (the "dark skin photography" confound).
+    - name: M_img
+      features: [image_resolution, mean_luminance, r_channel_mean, g_channel_mean, b_channel_mean]
+    - name: M_img_fst
+      features: [image_resolution, mean_luminance, r_channel_mean, g_channel_mean, b_channel_mean, fst_group]
+    # Full model with R/G/B channels + lesion controls.
+    - name: M5
+      features: [lesion_category, malignant, image_resolution, mean_luminance, r_channel_mean, g_channel_mean, b_channel_mean]
+    - name: M6
+      features: [lesion_category, malignant, image_resolution, mean_luminance, r_channel_mean, g_channel_mean, b_channel_mean, fst_group]
   primary_coefficient: fst_group
   bootstrap_n: 2000
 

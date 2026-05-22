@@ -43,6 +43,9 @@ def main() -> None:
         "image_resolution": "image_resolution",
         "mean_luminance": "mean_luminance",
         "color_channel_stats": "luminance_std",  # one summary stat for variance budget
+        "r_channel_mean": "r_channel_mean",
+        "g_channel_mean": "g_channel_mean",
+        "b_channel_mean": "b_channel_mean",
     }
     # Build M0..M4 sequentially.
     summaries = []
