@@ -38,7 +38,13 @@ def build_response_matrix(
 
     with responses_path.open() as f:
         for line in f:
-            d = json.loads(line)
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                d = json.loads(line)
+            except json.JSONDecodeError:
+                continue
             if d["error"] is not None:
                 continue
             if d["model_id"] not in model_id_to_idx or d["item_id"] not in item_id_to_idx:
@@ -125,8 +131,13 @@ def main() -> None:
     np.save(args.out_dir / "responses_matrix.npy", Y)
     np.save(args.out_dir / "refusal_matrix.npy", R)
 
-    embeddings_all = embed_images([it.image_path for it in items], backend=args.embedding_backend)
-    np.save(args.out_dir / f"embeddings_{args.embedding_backend}.npy", embeddings_all)
+    embeddings_cache = args.out_dir / f"embeddings_{args.embedding_backend}.npy"
+    if embeddings_cache.exists():
+        print(f"Loading cached embeddings from {embeddings_cache}")
+        embeddings_all = np.load(embeddings_cache)
+    else:
+        embeddings_all = embed_images([it.image_path for it in items], backend=args.embedding_backend)
+        np.save(embeddings_cache, embeddings_all)
 
     # Determine which items participate in the likelihood. With --prune-saturated,
     # items where the panel response pattern is all-wrong (sum=0) or all-correct

@@ -1,11 +1,4 @@
 """Per-FST accuracy restricted to non-degenerate generative respondents.
-
-Motivation: the main panel mixes degenerate contrastive zero-shot models
-(CLIP, SigLIP predict 'benign' on >95% of items) with the generative models
-that actually discriminate. This script reports stratified accuracy for only
-the two full-size generative respondents (GPT-4o, Claude Sonnet) whose
-prediction distributions are not collapsed to the label prior.
-
 Run:
   python scripts/08_generative_stratified.py --ddi-root <DDI_ROOT>
 """
@@ -35,7 +28,13 @@ def load_responses(path: Path, refusal_markers: list[str]) -> pd.DataFrame:
     seen: set[tuple[str, str]] = set()
     with path.open() as f:
         for line in f:
-            d = json.loads(line)
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                d = json.loads(line)
+            except json.JSONDecodeError:
+                continue
             if d.get("error"):
                 continue
             key = (d["model_id"], d["item_id"])

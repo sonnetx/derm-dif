@@ -1,4 +1,15 @@
-"""Compute the primary endpoint: aggregate residualized FST difficulty shift with bootstrap CI."""
+"""Compute the primary endpoint: aggregate residualized FST difficulty shift with bootstrap CI.
+
+Sensitivity flags:
+  --exclude-iii-iv   Drop FST-III/IV items before the residualization fit.
+                     The primary endpoint uses only I-II vs V-VI items for Δ
+                     but III-IV items participate in the OLS fit; this flag
+                     tests whether excluding them changes the result.
+
+Family-leave-one-out sensitivity: supply a different --rasch-dir pointing to
+a Rasch fit trained on a respondent subset (e.g., generative-only or
+contrastive-only). The script then recomputes Δ from that difficulty vector.
+"""
 
 from __future__ import annotations
 
@@ -32,6 +43,11 @@ def main() -> None:
     ap.add_argument("--rasch-dir", type=Path, default=Path("artifacts/rasch"))
     ap.add_argument("--analysis-config", type=Path, default=Path("config/analysis.yaml"))
     ap.add_argument("--out", type=Path, default=Path("artifacts/aggregate_dif.json"))
+    ap.add_argument(
+        "--exclude-iii-iv",
+        action="store_true",
+        help="Drop FST-III/IV items from the residualization fit (sensitivity check).",
+    )
     args = ap.parse_args()
 
     cfg = yaml.safe_load(args.analysis_config.read_text())["aggregate_dif"]
@@ -40,8 +56,16 @@ def main() -> None:
     items = load_ddi(args.ddi_root)
     attrs = items_to_attrs(items)
 
+    difficulty = fit["difficulty"]
+    if args.exclude_iii_iv:
+        keep = attrs["fst_group"] != "III-IV"
+        difficulty = difficulty[keep.values]
+        attrs = attrs[keep].reset_index(drop=True)
+        print(f"[--exclude-iii-iv] Dropped III-IV: {keep.sum()} items retained "
+              f"({(~keep).sum()} dropped)")
+
     result = aggregate_fst_shift(
-        difficulty=fit["difficulty"],
+        difficulty=difficulty,
         item_attrs=attrs,
         focal=tuple(cfg["comparison_groups"]["focal"]),
         reference=tuple(cfg["comparison_groups"]["reference"]),
@@ -59,6 +83,10 @@ def main() -> None:
         "decision": result.decision,
         "n_focal": result.n_focal,
         "n_reference": result.n_reference,
+        "sensitivity_flags": {
+            "exclude_iii_iv": args.exclude_iii_iv,
+            "rasch_dir": str(args.rasch_dir),
+        },
     }
 
     # Sensitivity thresholds.

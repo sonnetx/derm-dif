@@ -22,6 +22,11 @@ def main() -> None:
     ap.add_argument("--rasch-dir", type=Path, default=Path("artifacts/rasch"))
     ap.add_argument("--analysis-config", type=Path, default=Path("config/analysis.yaml"))
     ap.add_argument("--out", type=Path, default=Path("artifacts/lltm.json"))
+    ap.add_argument(
+        "--exclude-iii-iv",
+        action="store_true",
+        help="Fit LLTM only on FST-I/II and V/VI items (drops III-IV; sensitivity check).",
+    )
     args = ap.parse_args()
 
     cfg = yaml.safe_load(args.analysis_config.read_text())["lltm"]
@@ -39,6 +44,13 @@ def main() -> None:
     )
     # Map config feature names to actual columns.
     attrs = pd.concat([attrs, img_feats], axis=1)
+
+    difficulty = np.array(fit["difficulty"])
+    if args.exclude_iii_iv:
+        keep = attrs["fst_group"] != "III-IV"
+        difficulty = difficulty[keep.values]
+        attrs = attrs[keep].reset_index(drop=True)
+        print(f"[--exclude-iii-iv] Retained {keep.sum()} items (dropped {(~keep).sum()} III-IV)")
     rename = {
         "image_resolution": "image_resolution",
         "mean_luminance": "mean_luminance",
@@ -55,7 +67,7 @@ def main() -> None:
             summaries.append({"model": spec["name"], "r2": 0.0, "coefficients": {}})
             continue
         lltm_fit = fit_lltm(
-            difficulty=fit["difficulty"],
+            difficulty=difficulty,
             item_attributes=attrs,
             features=feats,
             n_bootstrap=cfg["bootstrap_n"],

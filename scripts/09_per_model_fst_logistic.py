@@ -39,7 +39,13 @@ def load_response_matrix(
     rows, seen = [], set()
     with responses_path.open() as f:
         for line in f:
-            d = json.loads(line)
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                d = json.loads(line)
+            except json.JSONDecodeError:
+                continue
             if d.get("error"):
                 continue
             key = (d["model_id"], d["item_id"])
