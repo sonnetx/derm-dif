@@ -191,29 +191,6 @@ Under the regularized fit at $J = 9$, item difficulty falls in the canonical ran
 \end{equation*}
 The point estimate is near zero, though nominally positive, with V-VI items slightly harder. The CI excludes $\hat\Delta < -0.23$ or $\hat\Delta > +0.34$ logits. The falsification-threshold effect ($|\hat\Delta| \geq 0.5$) is ruled out in both directions. % A sensitivity that excludes FST-III/IV items from the OLS residualization entirely yields $\hat\Delta = -0.004$ ($95\%$ CI $[-0.244, +0.295]$, \emph{no\_effect}), confirming the null is not sensitive to whether III/IV items inform the lesion-category controls.
 
-\paragraph{Synthetic validation: the pipeline recovers ground-truth FST effects.}
-\label{sec:prelim_synthetic}
-To verify that the IRT residualization recovers true FST effects rather than suppressing them by construction, we ran 200-replication simulations under four scenarios matching DDI structure ($I = 656$ items, $J = 9$ respondents, $74\%$ benign prevalence; \texttt{scripts/10\_synthetic\_validation.py}).
-
-\begin{center}
-\small
-\setlength{\tabcolsep}{5pt}
-\begin{tabular}{lrrrrr}
-\toprule
-Scenario & True $\delta$ & IRT $\hat\Delta$ & RMSE & CI cov.\ & Naive gap \\
-\midrule
-S1: composition confound only           & $0.00$ & $+0.052$ & $0.210$ & $0.93$ & $-0.029$ \\
-S2: composition $+$ FST DIF             & $0.50$ & $+0.605$ & $0.227$ & $0.94$ & $-0.107$ \\
-S3: FST DIF only (no confound)          & $0.50$ & $+0.604$ & $0.256$ & $0.93$ & $-0.079$ \\
-S4: unregularized $+$ saturated items   & $0.00$ & $+0.052$ & $0.457$ & $0.97$ & $-0.024$ \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\textit{S1} (\emph{composition confound only}, true $\delta = 0$): IRT residualization recovers a near-null estimate ($\hat\Delta = +0.052$, RMSE $= 0.210$) when V-VI items are harder only because they draw from a harder lesion mix. No false positive arises from the composition structure alone.
-\textit{S2 and S3} (\emph{true FST DIF present}, $\delta = 0.5$): the pipeline returns substantially non-zero estimates ($+0.604$ to $+0.605$), confirming it detects real FST effects. The upward bias ($\approx +0.10$ logits) reflects imperfect separation under a simplified 10-category lesion taxonomy; it does not affect the null conclusion on real DDI data where the full 78-category taxonomy is used.
-\textit{S4} (\emph{unregularized IRT}, 80 saturated-floor items injected, true $\delta = 0$): the point estimate remains near zero but RMSE inflates $2.2\times$ to $0.457$ vs.\ $0.210$ under regularized estimation. When saturated items are randomly placed, variance is symmetric and the mean stays near zero; on real DDI data, the saturated items are concentrated in harder lesion categories, converting the variance inflation into directional upward bias.
-
 \paragraph{IRT surfaces prevalence-matching degeneracy.}
 \label{sec:prelim_irt_degeneracy}
 The respondent-side IRT output constitutes a diagnostic validation of the framework's sensitivity. It correctly identifies that CLIP, SigLIP, and LLaVA-v1.6-Mistral-7B are not measuring the same construct as the generative models, as evidenced by near-constant benign prediction and (for CLIP) near-zero inter-rater $\kappa$ (\S\ref{sec:prelim_kappa}). Per-respondent ability $\hat\theta_j$ at $J = 9$:
