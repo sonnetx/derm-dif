@@ -67,11 +67,9 @@ def main() -> None:
             "malignant": [it.malignant for it in items],
         }
     )
-    # Order FST columns consistently
     fst_order = ["I-II", "III-IV", "V-VI"]
     df["fst_group"] = pd.Categorical(df["fst_group"], categories=fst_order, ordered=True)
 
-    # Lesion x FST
     lesion_x_fst = _crosstab_with_totals(df["lesion_category"], df["fst_group"])
     print("=== Lesion category x FST group ===")
     print(lesion_x_fst.to_string())
@@ -93,7 +91,6 @@ def main() -> None:
     print(f"  -> {args.out_dir / 'lesion_x_fst.tex'}")
     print()
 
-    # Malignant x FST
     mal_x_fst = _crosstab_with_totals(df["malignant"], df["fst_group"])
     print("=== Malignant x FST group ===")
     print(mal_x_fst.to_string())
@@ -114,7 +111,6 @@ def main() -> None:
     print(f"  -> {args.out_dir / 'malignant_x_fst.tex'}")
     print()
 
-    # Per-FST malignancy rate as a quick descriptive
     print("=== Malignancy base rate by FST group ===")
     base_rate = df.groupby("fst_group", observed=True)["malignant"].mean()
     print(base_rate.to_string())

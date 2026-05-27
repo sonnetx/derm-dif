@@ -85,8 +85,6 @@ def fit_per_model(
         if n < 20:
             continue
 
-        # Build design matrix: lesion_category dummies + malignant + fst_group dummies
-        # Reference levels: most-frequent lesion category, FST I-II.
         lc_ref = sub["lesion_category"].value_counts().index[0]
         lc_dummies = pd.get_dummies(sub["lesion_category"], prefix="lc").astype(float)
         lc_dummies = lc_dummies.drop(
@@ -94,7 +92,6 @@ def fit_per_model(
             errors="ignore",
         )
         fst_dummies = pd.get_dummies(sub["fst_group"], prefix="fst").astype(float)
-        # Drop FST I-II as reference.
         fst_dummies = fst_dummies.drop(columns=["fst_I-II"], errors="ignore")
 
         X = pd.concat(
@@ -126,7 +123,6 @@ def fit_per_model(
         )
         coef = dict(zip(feature_names, clf.coef_.ravel()))
 
-        # Bootstrap CIs (resample items).
         boot = {name: [] for name in feature_names}
         for _ in range(n_bootstrap):
             idx = rng.integers(0, n, size=n)

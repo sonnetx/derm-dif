@@ -78,7 +78,6 @@ def one_seed(
         embedding_dim=embeddings.shape[1], n_models=Y.shape[0], seed=seed
     )
 
-    # Mirror script 03's prune-saturated + train/holdout + refit logic but driven by `seed`.
     rng = np.random.default_rng(seed)
     n = Y.shape[1]
     holdout = rng.choice(n, size=int(0.2 * n), replace=False)
@@ -86,7 +85,6 @@ def one_seed(
     train_mask[holdout] = False
 
     train_fit = fit_amortized_rasch(Y[:, train_mask], embeddings[train_mask], cfg)
-    # Held-out AUC via the trained MLP applied to holdout embeddings.
     import torch
     from derm_dif.irt.amortized import _DifficultyMLP
     mlp = _DifficultyMLP(embeddings.shape[1], 128)

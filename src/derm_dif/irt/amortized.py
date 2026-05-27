@@ -93,7 +93,6 @@ def fit_amortized_rasch(
     for _ in range(config.n_epochs):
         opt.zero_grad()
         b = mlp(E)                                 # (I,)
-        # Rasch log-likelihood on observed entries.
         logit = theta[:, None] - b[None, :]        # (J, I)
         ll = -nn.functional.binary_cross_entropy_with_logits(
             logit, Y_clean, weight=M, reduction="sum"

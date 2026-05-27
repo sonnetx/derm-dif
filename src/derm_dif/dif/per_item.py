@@ -29,7 +29,6 @@ def _matched_subset(theta: np.ndarray, scores_focal: np.ndarray, scores_ref: np.
 
     Returns 2x2 contingency table summed across matching bins (focal vs reference).
     """
-    # Crude binning: 5 bins on theta percentile.
     bins = np.quantile(theta, np.linspace(0, 1, 6))
     bins[-1] += 1e-6
     bin_idx = np.digitize(theta, bins) - 1
@@ -57,7 +56,6 @@ def lord_chi_square(
     With one b parameter per group, Lord's test reduces to (b_focal - b_ref)^2 / Var.
     Variance is estimated from the inverse Fisher information at the joint MLE.
     """
-    # Information per respondent under Rasch is sigma * (1 - sigma).
     p_focal = 1.0 / (1.0 + np.exp(-(theta - focal_difficulty)))
     p_ref = 1.0 / (1.0 + np.exp(-(theta - ref_difficulty)))
     var_focal = 1.0 / np.clip((p_focal * (1 - p_focal)).sum(), 1e-6, None)
@@ -87,7 +85,6 @@ def mantel_haenszel(
         return float("nan"), float("nan")
     alpha = (a * d) / (b * c)
     delta = -2.35 * np.log(alpha)
-    # MH chi-square (uncorrected, simple form).
     n = a + b + c + d
     e = (a + b) * (a + c) / n
     v = (a + b) * (c + d) * (a + c) * (b + d) / (n * n * (n - 1)) if n > 1 else 1.0

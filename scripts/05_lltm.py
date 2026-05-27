@@ -42,7 +42,6 @@ def main() -> None:
             "fst_group": [it.fst_group for it in items],
         }
     )
-    # Map config feature names to actual columns.
     attrs = pd.concat([attrs, img_feats], axis=1)
 
     difficulty = np.array(fit["difficulty"])
@@ -59,7 +58,6 @@ def main() -> None:
         "g_channel_mean": "g_channel_mean",
         "b_channel_mean": "b_channel_mean",
     }
-    # Build M0..M4 sequentially.
     summaries = []
     for spec in cfg["nesting"]:
         feats = [rename.get(f, f) for f in spec["features"]]

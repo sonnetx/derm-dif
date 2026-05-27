@@ -72,7 +72,6 @@ def main() -> None:
 
     success = latest_success_by_key(args.responses)
 
-    # Bucket: model -> fst_group -> label -> count
     counts: dict = collections.defaultdict(lambda: collections.defaultdict(collections.Counter))
     coverage = collections.Counter()
     for (model, item), row in success.items():
@@ -109,7 +108,6 @@ def main() -> None:
     truth_share = {g: (truth_rate[g] / truth_n[g] if truth_n[g] else 0.0) for g in fst_order}
 
     for ax, model in zip(axes, kept):
-        # Build proportions per FST stratum
         props = np.zeros((n_fst, len(label_order)))
         for i, g in enumerate(fst_order):
             total = sum(counts[model][g].values())
@@ -155,7 +153,6 @@ def main() -> None:
         if ax is axes[0]:
             ax.set_ylabel("Proportion of parsed responses")
 
-    # Single legend at top
     handles = [
         plt.Rectangle((0, 0), 1, 1, color=label_colors[lab]) for lab in ("benign", "malignant")
     ]
@@ -185,7 +182,6 @@ def main() -> None:
     print(f"wrote {png_path}")
     print(f"wrote {pdf_path}")
 
-    # Also print a text summary
     print("\n=== Prediction shares per model x FST ===")
     for model in kept:
         print(f"\n{short_name(model)} ({model}):")

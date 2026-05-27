@@ -1,6 +1,6 @@
 """Primary endpoint: aggregate FST difficulty shift on the residualized Rasch logit scale.
 
-Decision rule (pre-registered in config/analysis.yaml):
+Decision rule (from config/analysis.yaml):
   Conclude meaningful FST measurement non-invariance iff
     |Delta| >= 0.5 logits AND bootstrap 95% CI of Delta excludes zero.
 """

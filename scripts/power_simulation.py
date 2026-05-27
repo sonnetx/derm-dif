@@ -17,7 +17,7 @@ Method:
     logit-mean correctness (the joint-MLE limit when difficulties are
     integrated out and embeddings are non-informative).
   - Compute Spearman rho(theta_hat_a, theta_hat_b).
-- Report the empirical CDF of rho, with markers at the PAP cutoff (0.9)
+- Report the empirical CDF of rho, with markers at the cutoff (0.9)
   and at the empirically-observed rho (1.0).
 
 The simulation does NOT use the amortized MLP -- the embedding-amortized
@@ -73,7 +73,7 @@ def main() -> None:
     ap.add_argument("--n-per-subset", type=int, default=208, help="Items per FST subset (208 ~ I-II/V-VI)")
     ap.add_argument("--sigma-theta", type=float, default=0.4, help="True ability sd (matches observed)")
     ap.add_argument("--sigma-b", type=float, default=2.0, help="True difficulty sd (matches observed)")
-    ap.add_argument("--cutoff", type=float, default=0.9, help="PAP configural-invariance cutoff")
+    ap.add_argument("--cutoff", type=float, default=0.9, help="configural-invariance cutoff")
     ap.add_argument("--observed-rho", type=float, default=1.0)
     ap.add_argument("--out", type=Path, default=Path("artifacts/power_simulation.json"))
     ap.add_argument("--seed", type=int, default=0xC1F1)

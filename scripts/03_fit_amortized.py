@@ -177,7 +177,6 @@ def main() -> None:
         AmortizedRaschConfig(embedding_dim=embeddings_fit.shape[1], n_models=len(model_ids), difficulty_l2=args.difficulty_l2),
     )
 
-    # Re-evaluate difficulty on held-out items using the trained MLP.
     import torch
 
     from derm_dif.irt.amortized import _DifficultyMLP
@@ -189,7 +188,6 @@ def main() -> None:
         b_holdout = mlp(torch.tensor(embeddings_fit[holdout], dtype=torch.float32)).numpy()
     auc = held_out_auc(Y_fit[:, holdout], fit.theta, b_holdout)
 
-    # Re-fit on full likelihood items for downstream analyses.
     full_fit = fit_amortized_rasch(
         Y_fit,
         embeddings_fit,

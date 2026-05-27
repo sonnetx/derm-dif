@@ -2,14 +2,12 @@
 FST-V/VI item subsets independently, then Spearman-correlate the respondent
 ability vectors across the two fits.
 
-A high Spearman rho (PAP threshold: > 0.9) is evidence that the two subsets
-rank respondents the same way, i.e., the construct being measured is stable
-across FST strata even if item-difficulty scaling differs. A low Spearman
-would indicate that whatever the test is measuring on FST-I/II items is a
-different construct from what it measures on FST-V/VI items, which would
-undermine the comparability assumption of the primary endpoint.
-
-  python scripts/07_configural_invariance.py --ddi-root /path/to/ddi
+A high Spearman rho (> 0.9) is evidence that the two subsets rank respondents
+the same way, i.e., the construct being measured is stable across FST strata
+even if item-difficulty scaling differs. A low Spearman would indicate that
+whatever the test is measuring on FST-I/II items is a different construct from
+what it measures on FST-V/VI items, which would undermine the comparability
+assumption of the primary endpoint.
 """
 
 from __future__ import annotations

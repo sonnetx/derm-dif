@@ -89,7 +89,6 @@ def main() -> None:
         },
     }
 
-    # Sensitivity thresholds.
     summary["sensitivity"] = []
     for t in cfg.get("sensitivity_thresholds", []):
         excludes_zero = (result.ci_low > 0) or (result.ci_high < 0)

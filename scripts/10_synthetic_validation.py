@@ -206,7 +206,6 @@ def run_scenario(
         )
         responses = simulate_responses(rng, b_true, n_saturated_injection=n_saturated_injection)
 
-        # IRT residualization
         lambda_b = lambda_b_unreg if lambda_b_unreg > 0 else lambda_b_reg
         if lambda_b == 0.0:
             # flat-prior MLE via traditional fit

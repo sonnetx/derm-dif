@@ -52,7 +52,6 @@ def main() -> None:
         ),
     )
 
-    # Held-out predictive AUC on the last 20% of items.
     n_h = int(0.2 * args.n_items)
     auc = held_out_auc(Y[:, -n_h:], fit.theta, fit.difficulty[-n_h:])
 

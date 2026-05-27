@@ -27,7 +27,6 @@ def main() -> None:
     protocol = yaml.safe_load(args.protocol.read_text())["primary_protocol"]
     refusal_markers = protocol.get("parsing", {}).get("refusal_markers", [])
 
-    # Per-model: label counts and one example per label
     label_counts: dict[str, collections.Counter] = collections.defaultdict(collections.Counter)
     examples: dict[tuple[str, str], str] = {}
     seen_keys: set[tuple[str, str]] = set()

@@ -76,7 +76,6 @@ def refusal_logit_fst(
     fst_dummies = pd.get_dummies(fst_group, drop_first=True).astype(float).values  # (I, k)
 
     def _fit(model_idx_subset: np.ndarray) -> np.ndarray:
-        # Stack (model x item) into long format on the chosen model subset.
         ys = []
         Xs = []
         for j in model_idx_subset:
@@ -93,7 +92,7 @@ def refusal_logit_fst(
     point = _fit(np.arange(J))
     boot = np.zeros((n_bootstrap, len(point)))
     for b in range(n_bootstrap):
-        idx = rng.integers(0, J, size=J)  # cluster-bootstrap on models
+        idx = rng.integers(0, J, size=J)
         boot[b] = _fit(idx)
     return {
         "coef": point,

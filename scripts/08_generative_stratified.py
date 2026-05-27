@@ -81,14 +81,12 @@ def main() -> None:
     df = df[df["model_id"].isin(GENERATIVE_FULL_SIZE)].copy()
     df = df.merge(meta, on="item_id", how="left")
 
-    # Correct = prediction matches ground truth label.
     df["predicted_malignant"] = df["label"] == "malignant"
     df["correct"] = df["predicted_malignant"] == df["malignant"]
 
     fst_groups = ["I-II", "III-IV", "V-VI"]
     results: dict = {"per_model": {}, "pooled": {}}
 
-    # Per-model breakdown.
     for model_id in sorted(df["model_id"].unique()):
         sub = df[df["model_id"] == model_id]
         results["per_model"][model_id] = {}
@@ -105,7 +103,6 @@ def main() -> None:
                 "n_refused": int((g_df["label"] == "refusal").sum()),
                 "n_total": int(len(g_df)),
             }
-        # Gap: V-VI minus I-II.
         acc_vvi = results["per_model"][model_id].get("V-VI", {}).get("accuracy", float("nan"))
         acc_iii = results["per_model"][model_id].get("I-II", {}).get("accuracy", float("nan"))
         results["per_model"][model_id]["gap_vvi_minus_iii"] = acc_vvi - acc_iii
