@@ -1,4 +1,4 @@
-# Beyond Stratified Accuracy:\\An Item Response Theory Audit of Dermatology AI Fairness
+# Beyond Stratified Accuracy: An Item Response Theory Audit of Dermatology AI Fairness
 
 Item-level measurement-invariance analysis for the DDI dermatology benchmark, applied to foundation vision-language models. 
 
