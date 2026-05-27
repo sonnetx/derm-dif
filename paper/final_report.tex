@@ -26,7 +26,7 @@
 \maketitle
 
 \begin{abstract}
-We evaluate the inferential validity of FST-stratified accuracy as a fairness metric for dermatology AI by applying amortized Item Response Theory (IRT) to the Diverse Dermatology Images (DDI) benchmark. We investigate subgroup accuracy gap as a measurement claim, and examine whether benchmark items present measurement invariance across groups. We test this with $J = 9$ respondents (four closed-API generative models, three contrastive zero-shot, two open-weight VLMs). On the conventional metric, leading closed-API generative models show a $-5$ to $-7$ pp V-VI gap (per-model breakdown in Section~\ref{sec:prelim_calibration}). Exploring the residualized FST shift through IRT, we find $\hat\Delta = +0.051$ logits ($95\%$ bootstrap CI $[-0.229, +0.343]$). The LLTM nested decomposition assigns $34\%$ of item-difficulty variance to lesion category and finds $\beta_{\text{FST}} \approx 0$ ($\Delta R^2 < 0.001$). This null result has a key methodological caveat: some models look artificially capable under IRT. Three respondents (CLIP, SigLIP, LLaVA) receive inflated ability estimates due to prevalence-matching. Both findings are applicable to any benchmark with strong label prevalence. At the panel level, V-VI items are not demonstrably harder than I-II items at the IRT difficulty level before or after lesion controls, and lesion category alone accounts for $34\%$ of item-difficulty variance. Per-model analysis reveals that the pooled null conceals opposing FST effects across models, with some performing significantly worse on FST-V/VI items after lesion controls and others significantly better. Per-model logistic regression finds that LLaVA-v1.6-Mistral-7B performs significantly worse on V-VI items after lesion controls ($\hat\beta = -0.704$, CI $[-1.357, -0.094]$) while Claude Haiku 4.5 performs significantly better ($\hat\beta = +0.612$, CI $[+0.055, +1.220]$). The aggregate null arises from cancellation of these opposing effects, not from uniform absence of FST signal. 
+We evaluate the inferential validity of FST-stratified accuracy as a fairness metric for dermatology AI by applying amortized Item Response Theory (IRT) to the Diverse Dermatology Images (DDI) benchmark. We investigate subgroup accuracy gap as a measurement claim, and examine whether benchmark items present measurement invariance across groups. We test this with $J = 9$ respondents (four closed-API generative models, three contrastive zero-shot, two open-weight VLMs). Exploring the residualized FST shift through IRT, we find $\hat\Delta = +0.051$ logits ($95\%$ bootstrap CI $[-0.229, +0.343]$). The LLTM nested decomposition assigns $34\%$ of item-difficulty variance to lesion category and finds $\beta_{\text{FST}} \approx 0$ ($\Delta R^2 < 0.001$). This null result has a key methodological caveat: some models look artificially capable under IRT. Three respondents (CLIP, SigLIP, LLaVA) receive inflated ability estimates due to prevalence-matching. Both findings are applicable to any benchmark with strong label prevalence. At the panel level, V-VI items are not demonstrably harder than I-II items at the IRT difficulty level before or after lesion controls. Per-model analysis reveals that the pooled null conceals opposing FST effects across models, with some performing significantly worse on FST-V/VI items after lesion controls and others significantly better. Per-model logistic regression finds that LLaVA-v1.6-Mistral-7B performs significantly worse on V-VI items after lesion controls ($\hat\beta = -0.704$, CI $[-1.357, -0.094]$) while Claude Haiku 4.5 performs significantly better ($\hat\beta = +0.612$, CI $[+0.055, +1.220]$). The aggregate null arises from cancellation of these opposing effects, not from uniform absence of FST signal. 
 \end{abstract}
 
 % ============================================================================
@@ -136,36 +136,49 @@ Total & 208 & 241 & 207 & 656 \\
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:prelim-fst-accuracy} reports per-model accuracy under the binary benign-vs-malignant protocol, stratified by FST group. The two full-size generative respondents (GPT-4o, Claude Sonnet 4.5) show V-VI minus I-II gaps of $-5$ to $-7$ percentage points, with a non-monotonic pattern across FST (III-IV intermediate or slightly higher than I-II rather than a linear decline). BiomedCLIP shows a comparable $-5$ pp V-VI gap. CLIP ViT-L/14 is an outlier, with a $68.4\%$ top-line accuracy exceeding the generative models', and its V-VI gap is only $-3$ pp. We explain below that this pattern is a degenerate-classifier artifact rather than capability.
+Table~\ref{tab:prelim-fst-accuracy} reports per-model accuracy across all nine respondents. The V-VI gaps are heterogeneous in sign and magnitude. GPT-4o ($-5.5$ pp), Claude Sonnet ($-6.5$ pp), and BiomedCLIP ($-4.6$ pp) show moderate negative gaps. The open-weight VLMs show the largest raw gaps: Qwen2-VL-7B at $-12.8$ pp and LLaVA-v1.6-Mistral-7B at $-9.8$ pp. Claude Haiku ($+4.3$ pp) and Gemini ($+0.2$ pp) go the other direction. High top-line accuracy on CLIP ($69\%$) and SigLIP ($74\%$) is a degenerate-classifier artifact, explained below.
 
 \begin{table}[t]
 \centering
-\caption{FST-stratified accuracy for a representative subset of four respondents (2 closed-API generative, 2 contrastive zero-shot). Per-model proportion of items answered correctly under the binary benign-vs-malignant protocol; the right-most column is the V-VI minus I-II gap. Item counts per FST group in parentheses.}
+\caption{FST-stratified accuracy for all nine respondents. Per-model proportion of items answered correctly under the binary benign-vs-malignant protocol; the right-most column is the V-VI minus I-II gap. Counts in parentheses are parseable items per stratum.}
 \label{tab:prelim-fst-accuracy}
 \small
 \begin{tabular}{lrrrrr}
 \toprule
 Model & $N$ & FST I-II & FST III-IV & FST V-VI & Gap (V-VI $-$ I-II) \\
 \midrule
-GPT-4o            & 656 & 0.596 (208) & 0.631 (241) & 0.541 (207) & $-$0.055 \\
-Claude Sonnet 4.5 & 656 & 0.611 (208) & 0.602 (241) & 0.546 (207) & $-$0.065 \\
-CLIP ViT-L/14     & 656 & 0.721 (208) & 0.647 (241) & 0.691 (207) & $-$0.030 \\
-BiomedCLIP        & 656 & 0.562 (208) & 0.598 (241) & 0.517 (207) & $-$0.046 \\
+\multicolumn{6}{l}{\textit{Closed-API generative}} \\
+GPT-4o-2024-11-20      & 656 & 0.596 (208) & 0.631 (241) & 0.541 (207) & $-$0.055 \\
+Claude Sonnet 4.5      & 656 & 0.611 (208) & 0.602 (241) & 0.546 (207) & $-$0.065 \\
+Claude Haiku 4.5       & 656 & 0.620 (208) & 0.672 (241) & 0.663 (207) & $+$0.043 \\
+Gemini-3.1-flash-lite  & 652 & 0.520 (204) & 0.573 (241) & 0.522 (207) & $+$0.002 \\
+\midrule
+\multicolumn{6}{l}{\textit{Contrastive zero-shot}} \\
+CLIP ViT-L/14          & 656 & 0.721 (208) & 0.647 (241) & 0.691 (207) & $-$0.030 \\
+SigLIP-L/16$^\dagger$  & 656 & 0.764 (208) & 0.693 (241) & 0.773 (207) & $+$0.009 \\
+BiomedCLIP             & 656 & 0.562 (208) & 0.598 (241) & 0.517 (207) & $-$0.046 \\
+\midrule
+\multicolumn{6}{l}{\textit{Open-weight VLMs (7B)}} \\
+Qwen2-VL-7B            & 656 & 0.562 (208) & 0.556 (241) & 0.435 (207) & $-$0.128 \\
+LLaVA-v1.6-Mistral-7B & 656 & 0.755 (208) & 0.704 (241) & 0.657 (207) & $-$0.098 \\
 \bottomrule
 \end{tabular}
 \\[0.3ex]
-{\footnotesize SigLIP-L/16 is omitted from this table because its near-constant-benign prediction pattern ($99.8\%$ benign) makes its per-stratum accuracy a degenerate artifact (see \S\ref{sec:prelim_irt_degeneracy}).}
+{\footnotesize $^\dagger$SigLIP-L/16 predicts ``benign'' on $99.8\%$ of items; its accuracy reflects majority-class exploitation rather than diagnostic discrimination (see \S\ref{sec:prelim_irt_degeneracy}).}
 \normalsize
 \end{table}
 
 \paragraph{Per-model prediction-distribution patterns (Figure~\ref{fig:prediction-distribution}).}
 \label{sec:prelim_calibration}
-The accuracy table conceals dramatically different per-model calibration regimes. We plot the proportion of ``benign'' vs.\ ``malignant'' predictions each respondent emits per FST stratum, with the true malignancy rate overlaid as a black tick (Figure~\ref{fig:prediction-distribution}). There are three key patterns:
+The accuracy table conceals dramatically different per-model calibration regimes. We plot the proportion of ``benign'' vs.\ ``malignant'' predictions each respondent emits per FST stratum, with the true malignancy rate overlaid as a black tick (Figure~\ref{fig:prediction-distribution}). There are six distinct calibration patterns:
 
 \begin{itemize}
     \item \textbf{GPT-4o and Claude Sonnet 4.5}: over-predict malignancy by $15$ to $25$ percentage points roughly uniformly across FST ($40$ to $47\%$ predicted vs.\ $23$ to $31\%$ true).
-    \item \textbf{BiomedCLIP}: over-predicts malignancy more aggressively still ($50$ to $58\%$ predicted vs.\ $23$ to $31\%$ true).
-    \item \textbf{CLIP ViT-L/14}: systematically \emph{under}-predicts malignancy ($5.3\% / 17.0\% / 13.5\%$ across FST-I/II, III/IV, V/VI vs.\ true $23.6\% / 30.7\% / 23.2\%$). In FST-I/II it is nearly a constant-``benign'' classifier. Its $68\%$ top-line accuracy is almost entirely an artifact of DDI's $74\%$ benign-prevalence baseline. Cohen's $\kappa$ vs.\ every other respondent on the parseable subset is near zero (\S\ref{sec:prelim_kappa}), consistent with degenerate behavior masked by a label-prevalence-friendly metric.
+    \item \textbf{Gemini-3.1-flash-lite}: the largest FST-dependent over-prediction of any closed-API model: $\approx\!66\%$ predicted malignant in FST I-II, declining to $\approx\!52\%$ in FST V-VI, both far above the $23$--$31\%$ true rate.
+    \item \textbf{Claude Haiku 4.5}: predicted-malignant rate decreases across FST strata ($\approx\!39\%$ in I-II to $\approx\!29\%$ in V-VI), keeping it closer to the true prevalence than the other closed-API models.
+    \item \textbf{BiomedCLIP and Qwen2-VL-7B}: aggressive over-prediction throughout ($50$--$60\%$ predicted vs.\ $23$--$31\%$ true).
+    \item \textbf{CLIP ViT-L/14}: systematically \emph{under}-predicts malignancy ($5.3\% / 17.0\% / 13.5\%$ across FST I-II, III-IV, V-VI vs.\ true $23.6\% / 30.7\% / 23.2\%$). In FST I-II it is nearly a constant-``benign'' classifier. Its $69\%$ top-line accuracy is almost entirely an artifact of DDI's $74\%$ benign-prevalence baseline. Cohen's $\kappa$ vs.\ every other respondent is near zero (\S\ref{sec:prelim_kappa}), consistent with degenerate behavior masked by label-prevalence.
+    \item \textbf{SigLIP-L/16 and LLaVA-v1.6-Mistral-7B}: SigLIP predicts ``benign'' on $99.8\%$ of items; LLaVA moderately under-predicts malignancy ($\approx\!7\%$ predicted vs.\ $26\%$ true). Both have $\kappa \approx 0$ against every generative respondent (\S\ref{sec:prelim_kappa}).
 \end{itemize}
 
 \begin{figure}[t]
@@ -179,7 +192,7 @@ The accuracy table conceals dramatically different per-model calibration regimes
 
 \paragraph{Inter-model agreement.}
 \label{sec:prelim_kappa}
-Pairwise Cohen's $\kappa$ ($n = 656$ each pair): GPT-4o vs.\ Claude Sonnet 4.5 $= 0.47$; GPT-4o vs.\ BiomedCLIP $= 0.28$; Claude vs.\ BiomedCLIP $= 0.31$; GPT-4o vs.\ CLIP $= -0.01$; Claude vs.\ CLIP $= 0.02$; BiomedCLIP vs.\ CLIP $= -0.01$. The two generative respondents share a positive latent signal with each other and with BiomedCLIP, satisfying the construct-stability precondition for IRT. CLIP's near-zero $\kappa$ against every other respondent is the diagnostic for its degenerate prediction pattern.
+The full $9 \times 9$ pairwise Cohen's $\kappa$ matrix reveals three agreement clusters. \emph{Generative cluster} (GPT-4o, Claude Sonnet 4.5, Claude Haiku 4.5, Gemini): pairwise $\kappa = 0.34$--$0.56$. \emph{Open-weight VLMs}: Qwen2-VL-7B agrees moderately with the generative cluster ($\kappa = 0.35$--$0.47$); LLaVA-v1.6-Mistral-7B is lower ($\kappa = 0.23$--$0.37$). BiomedCLIP lies between the two: $\kappa = 0.28$--$0.34$ with generative respondents. \emph{Degenerate classifiers}: CLIP ViT-L/14 and SigLIP-L/16 have $\kappa \approx 0$ against every other respondent, confirming that their high raw accuracy reflects majority-class exploitation rather than shared diagnostic signal.
 
 \paragraph{Amortized Rasch fit.}
 \label{sec:prelim_irt}
