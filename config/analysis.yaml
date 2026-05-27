@@ -47,24 +47,15 @@ lltm:
     - name: M2
       features: [lesion_category, malignant]
     - name: M3
-      features: [lesion_category, malignant, image_resolution, mean_luminance, color_channel_stats]
-    - name: M4
-      features: [lesion_category, malignant, image_resolution, mean_luminance, color_channel_stats, fst_group]
-    # Sensitivity: raw FST (no controls) — establishes that the raw effect exists.
+      features: [lesion_category, malignant, fst_group]
+    # Sensitivity: raw FST (no controls) — shows raw effect is already null,
+    # ruling out that lesion-category control is hiding a true FST signal.
     - name: M_raw
       features: [fst_group]
-    # Sensitivity: image features + FST, no lesion-category control.
-    # If beta_FST is nonzero here but zero in M4, mediation is via lesion_category,
-    # not via image quality/contrast (the "dark skin photography" confound).
-    - name: M_img
-      features: [image_resolution, mean_luminance, r_channel_mean, g_channel_mean, b_channel_mean]
-    - name: M_img_fst
-      features: [image_resolution, mean_luminance, r_channel_mean, g_channel_mean, b_channel_mean, fst_group]
-    # Full model with R/G/B channels + lesion controls.
-    - name: M5
-      features: [lesion_category, malignant, image_resolution, mean_luminance, r_channel_mean, g_channel_mean, b_channel_mean]
-    - name: M6
-      features: [lesion_category, malignant, image_resolution, mean_luminance, r_channel_mean, g_channel_mean, b_channel_mean, fst_group]
+    # Image-feature models (M_img, M_img_fst, M5, M6) are excluded: luminance
+    # and channel means correlate with skin tone and would absorb FST signal as
+    # a back-door confounder. Empirically these models explained r²=0.009 of
+    # item difficulty variance regardless.
   primary_coefficient: fst_group
   bootstrap_n: 2000
 

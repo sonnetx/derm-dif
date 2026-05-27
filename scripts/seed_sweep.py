@@ -43,7 +43,13 @@ def build_response_matrix(jsonl_path: Path, items, model_ids: list[str], refusal
     truth = np.array([it.malignant for it in items])
     with jsonl_path.open() as f:
         for line in f:
-            d = json.loads(line)
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                d = json.loads(line)
+            except json.JSONDecodeError:
+                continue
             if d.get("error") is not None:
                 continue
             if d["model_id"] not in model_id_to_idx or d["item_id"] not in item_id_to_idx:

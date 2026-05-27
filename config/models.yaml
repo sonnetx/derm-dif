@@ -29,20 +29,30 @@ models:
     notes: Used both as a respondent AND as the primary embedding model. Track for circularity in the analysis.
 
   # --- Self-supervised vision encoders (paired with linear probe head trained on a held-out split) ---
+  # optional: true excludes DINOv3 from the respondent panel. It serves as a
+  # robustness embedding backbone (cross-backbone check in §prelim_cross_backbone)
+  # and has a separate logistic-probe response set, but including it as an IRT
+  # respondent would conflate the embedder with a respondent in the Rasch fit.
   - id: facebook/dinov3-vitl16-pretrain-lvd1689m
     family: dinov3
     modality: image
     source: huggingface
     deterministic_decoding: true
     version: 2025-08-14
+    optional: true
 
   # --- Generatively-trained multimodal models (open-weights) ---
-  - id: llava-hf/llava-1.5-13b-hf
+  # Pre-reg deviation 2026-05-23: llava-hf/llava-1.5-13b-hf (originally listed)
+  # replaced by llava-hf/llava-v1.6-mistral-7b-hf (LLaVA-Next, 2024). The 1.5
+  # checkpoint predates the 2024 instruction-tuning improvements and showed
+  # prevalence-matching degeneracy patterns in pilot runs (same issue as CLIP).
+  # LLaVA-1.6-Mistral is the current production checkpoint in the LLaVA family.
+  - id: llava-hf/llava-v1.6-mistral-7b-hf
     family: llava
     modality: image-text
     source: huggingface
     deterministic_decoding: true
-    version: 2023-10-05
+    version: 2024-01-30
 
   - id: Qwen/Qwen2-VL-7B-Instruct
     family: qwen-vl

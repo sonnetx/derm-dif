@@ -92,6 +92,12 @@ def main() -> None:
         "the L2 difficulty prior: if results agree with the unpruned fit, the "
         "prior is doing its job; if they differ, the prior is over-shrinking.",
     )
+    ap.add_argument(
+        "--difficulty-l2",
+        type=float,
+        default=1e-2,
+        help="L2 prior strength on item difficulty (default 1e-2). Pass 0.0 for flat-prior MLE.",
+    )
     args = ap.parse_args()
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
@@ -168,7 +174,7 @@ def main() -> None:
     fit = fit_amortized_rasch(
         Y_fit[:, train_mask],
         embeddings_fit[train_mask],
-        AmortizedRaschConfig(embedding_dim=embeddings_fit.shape[1], n_models=len(model_ids)),
+        AmortizedRaschConfig(embedding_dim=embeddings_fit.shape[1], n_models=len(model_ids), difficulty_l2=args.difficulty_l2),
     )
 
     # Re-evaluate difficulty on held-out items using the trained MLP.
@@ -187,7 +193,7 @@ def main() -> None:
     full_fit = fit_amortized_rasch(
         Y_fit,
         embeddings_fit,
-        AmortizedRaschConfig(embedding_dim=embeddings_fit.shape[1], n_models=len(model_ids)),
+        AmortizedRaschConfig(embedding_dim=embeddings_fit.shape[1], n_models=len(model_ids), difficulty_l2=args.difficulty_l2),
     )
 
     # Predict difficulty for ALL items (including saturated ones, which get the
