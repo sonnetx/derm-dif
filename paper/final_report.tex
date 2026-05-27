@@ -26,7 +26,7 @@
 \maketitle
 
 \begin{abstract}
-We evaluate the inferential validity of Fitzpatrick skin type (FST)-stratified accuracy as a fairness metric for dermatology AI by applying amortized Item Response Theory (IRT) to the Diverse Dermatology Images (DDI) benchmark. We investigate subgroup accuracy gap as a measurement claim, and examine whether benchmark items present measurement invariance across groups. We test this with $J = 9$ respondents (four closed-API generative models, three contrastive zero-shot, two open-weight VLMs). Exploring the residualized FST shift through IRT, we find $\hat\Delta = +0.051$ logits ($95\%$ bootstrap CI $[-0.229, +0.343]$). The LLTM nested decomposition assigns $34\%$ of item-difficulty variance to lesion category and finds $\beta_{\text{FST}} \approx 0$ ($\Delta R^2 < 0.001$). This null result highlights a key methodological caveat, that some models look artificially capable under IRT. Three respondents (CLIP, SigLIP, LLaVA) receive inflated ability estimates due to prevalence-matching and this is broadly applicable to any benchmark with strong label prevalence. At the panel level, V-VI items are not demonstrably harder than I-II items at the IRT difficulty level before or after lesion controls. Per-model analysis reveals opposing FST effects that cancel in the aggregate, implying that fairness audits based on panel-level summary statistics miss genuine within-model FST signal.
+We evaluate the inferential validity of Fitzpatrick skin type (FST)-stratified accuracy as a fairness metric for dermatology AI by applying amortized Item Response Theory (IRT) to the Diverse Dermatology Images (DDI) benchmark. We investigate subgroup accuracy gap as a measurement claim, and examine whether benchmark items present measurement invariance across groups. We test this with $J = 9$ respondents (four closed-API generative models, three contrastive zero-shot, two open-weight VLMs). Exploring the residualized FST shift through IRT, we find $\hat\Delta = +0.051$ logits ($95\%$ bootstrap CI $[-0.229, +0.343]$). The LLTM nested decomposition assigns $34\%$ of item-difficulty variance to lesion category and finds $\beta_{\text{FST}} \approx 0$ ($\Delta R^2 < 0.001$). This null result highlights a key methodological caveat, that some models look artificially capable under IRT. Three respondents (CLIP, SigLIP, LLaVA) receive inflated ability estimates due to prevalence-matching and this is broadly applicable to any benchmark with strong label prevalence. At the panel level, V-VI items are not demonstrably harder than I-II items at the IRT difficulty level before or after lesion controls. Per-model analysis reveals opposing FST effects that cancel in the aggregate, implying that fairness audits based on panel-level summary statistics miss genuine within-model FST signal. Code is available at \url{https://github.com/sonnetx/derm-dif}.
 \end{abstract}
 
 % ============================================================================
@@ -38,7 +38,7 @@ Dermatology AI tools are increasingly deployed in clinical care, with a wider ra
 
 Suppose an FST-V/VI subgroup exhibits lower accuracy than an FST-I/II subgroup. A stratified metric fails to distinguish three key cases: (1) capability difference, when models are genuinely worse at the underlying construct on darker skin, (2) difficulty composition, when the FST-V/VI items happen to be harder along construct-relevant dimensions, and (3) measurement non-invariance, where items in the two strata do not measure the same construct in the same way, so the accuracy numbers are not on a common scale \citep{borsboom2004concept}. Without separating these, equity claims derived from a subgroup gap are hard to support.
 
-This is particularly important as a subgroup accuracy comparison is a measurement claim that asserts that the score carries the same meaning in both groups. Measurement theory formalizes this as measurement invariance, where items must function as the same instrument across groups. When items do not, the resulting condition is called differential item functioning (DIF). This means that conditioned on the same latent ability, items in one stratum are systematically harder or easier \citep{holland1993differential}. An accuracy gap driven by DIF is a metric artifact, not a capability difference, and an equity ruling based on it is accordingly misspecified.
+Measurement theory formalizes subgroup accuracy as a measurement claim: items must function as the same instrument across groups. When they do not, the condition is called differential item functioning (DIF): items in one stratum are systematically harder or easier conditional on latent ability \citep{holland1993differential}. An accuracy gap driven by DIF is a metric artifact, not a capability difference.
 
 Standard ML benchmarking treats accuracy as a direct readout of capability. This works when the item pool is exchangeable across subgroups, meaning every group faces the same difficulty distribution. However, this is generally not true, especially for medicine, where dataset composition can be constrained by non-random factors. Specifically for DDI, it is known that the lesion-category distribution differs sharply across FST strata (\S\ref{sec:prelim_entanglement}), so per-FST accuracy aggregates compare partially non-overlapping mixtures of lesion types. Item Response Theory (IRT) provides the item-level apparatus to separate capability differences from difficulty composition, the standard tool for this problem in educational measurement \citep{millsap2011statistical}, here applied, to our knowledge for the first time, to a medical AI benchmark.
 
@@ -55,7 +55,7 @@ We adapt amortized IRT calibration \citep{truong2025reliableefficientamortizedmo
 \citet{truong2025reliableefficientamortizedmodelbased} introduced amortized IRT calibration for text benchmarks. Here, we adopt their approach, port it to image embeddings, and extend it to measurement invariance, which they do not address. \citet{polo2024tinybenchmarks} and \citet{rodriguez-etal-2021-evaluation} use IRT to construct compact benchmark subsets and rank NLP leaderboards, respectively. We extend it to analysis of subgroup invariance.
 
 \paragraph{DIF and measurement invariance.}
-DIF \citet{holland1993differential} is the psychometric term for a test item whose probability of a correct response, conditional on the latent trait being measured, varies across groups of respondents, meaning the item does not function as the same measurement instrument across groups.  \citet{millsap2011statistical} grounds the configural/metric/scalar-invariance hierarchy we adopt. We invert the usual direction, and instead of treating DIF as a property of human test items, we use it as a tool to audit ML benchmarks.
+\citet{millsap2011statistical} grounds the configural/metric/scalar-invariance hierarchy we adopt. We invert the usual direction: rather than treating DIF as a property of human test items, we use it to audit ML benchmarks.
 
 \paragraph{Fairness and validity in medical AI.}
 \citet{daneshjou2022disparities} introduced DDI to enable FST-stratified evaluation and documented substantial accuracy gaps. Subsequent work that has expanded the catalog \citep{groh2021evaluating}. \citet{wang2025differenceaware} argue more broadly that fairness metrics conflate disparate kinds of difference.
@@ -215,22 +215,23 @@ We ran the pre-registered nested-OLS decomposition of the regularized item-diffi
 \toprule
 Model & Features & $R^2$ & $\beta_{\text{V-VI}}$ [95\% CI] \\
 \midrule
-M0 & intercept only & $0.000$ & --- \\
-M1 & + lesion category & $0.340$ & --- \\
-M2 & + malignancy & $0.340$ & --- \\
+M0 & intercept only & $0.000$ & $-$ \\
+M1 & + lesion category & $0.340$ & $-$ \\
+M2 & + malignancy & $0.340$ & $-$ \\
 M3 & + FST & $0.340$ & $+0.063$ $[-0.303, +0.458]$ \\
 \midrule
 M\_raw & FST only (no controls) & $0.003$ & $+0.253$ $[-0.154, +0.624]$ \\
 \bottomrule
 \end{tabular}
 \end{center}
-We find three key observations. First, lesion category alone explains $34\%$ of the item-difficulty variance (M1 $R^2 = 0.340$), while malignancy and FST together add less than $0.1\%$. Second, the raw FST effect is null: M\_raw, which regresses difficulty on FST with no controls at all, yields $\beta_{\text{V-VI}} = +0.253$ $[-0.154, +0.624]$ and the CI straddles zero. This rules out lesion category as a bad control masking a true FST signal: V-VI items are not demonstrably harder even before conditioning. Third (the pre-registered primary endpoint), adding FST to the full design matrix (M3) produces $\Delta R^2 < 0.001$ and a coefficient indistinguishable from zero: $\beta_{\text{V-VI}} = +0.063$ $[-0.303, +0.458]$, CI straddling zero in both directions. The sign is nominally positive (V-VI items marginally harder after controls), consistent with the residualized shift $\hat\Delta = +0.051$.
+Lesion category alone explains $34\%$ of the item-difficulty variance (M1 $R^2 = 0.340$), while malignancy and FST together add less than $0.1\%$. The raw FST effect (M\_raw, no controls) is already null: $\beta_{\text{V-VI}} = +0.253$, CI $[-0.154, +0.624]$, straddling zero, which rules out lesion category as a bad control masking a true FST signal. The pre-registered primary endpoint (M3) yields $\beta_{\text{V-VI}} = +0.063$, CI $[-0.303, +0.458]$, also straddling zero, with $\Delta R^2 < 0.001$. The nominally positive sign is consistent with the residualized shift $\hat\Delta = +0.051$.
 
 \paragraph{Composition-aware baselines without a latent-trait model.}
 \label{sec:baselines}
-We present two non-IRT baselines to contextualize our findings. \textbf{(i) Propensity-matched accuracy gap.} We restrict to the 28 lesion categories present in \emph{both} FST-I/II and V-VI subsets ($n = 189$ I-II items, $n = 170$ V-VI items). The matched accuracy gap is $-0.046$ pp ($95\%$ CI $[-0.092, -0.001]$, which barely excludes zero); the unmatched gap on all I-II vs.\ V-VI items is $-0.033$ pp. \textbf{(ii) Pooled logistic regression.} Fitting $\text{logit}\,P(X_{ij}=1) \sim \text{FST} + \text{lesion\_category} + \text{malignant} + \text{model\_id}$ on the full response matrix yields $\hat\beta_{\text{FST(V-VI)}} = +0.034$ ($95\%$ CI $[-0.257, +0.308]$), consistent with $\hat\Delta \approx 0$.
+We present two non-IRT baselines to contextualize our findings. Restricting to the 28 lesion categories present in both FST-I/II and V-VI subsets ($n = 189$ I-II items, $n = 170$ V-VI items), the propensity-matched accuracy gap is $-0.046$ pp ($95\%$ CI $[-0.092, -0.001]$, barely excluding zero); the unmatched gap is $-0.033$ pp. A pooled logistic regression ($\text{logit}\,P(X_{ij}=1) \sim \text{FST} + \text{lesion\_category} + \text{malignant} + \text{model\_id}$) yields $\hat\beta_{\text{FST(V-VI)}} = +0.034$ ($95\%$ CI $[-0.257, +0.308]$), consistent with $\hat\Delta \approx 0$.
 
-\textbf{Per-model heterogeneity.} The pooled null conceals striking model-level variation. We fit $\text{logit}\,P(X_{ij}=1) \sim \text{lesion\_category} + \text{malignant} + \text{fst\_group}$ separately for each respondent (bootstrap $B=2000$):
+\paragraph{Per-model heterogeneity.}
+The pooled null conceals striking model-level variation. We fit $\text{logit}\,P(X_{ij}=1) \sim \text{lesion\_category} + \text{malignant} + \text{fst\_group}$ separately for each respondent (bootstrap $B=2000$):
 
 \begin{center}
 \small
@@ -242,11 +243,11 @@ Model & Acc & $\hat\beta_{\text{V-VI}}$ & 95\% CI \\
 CLIP ViT-L/14              & 0.684 & $-0.173$ & $[-0.943,\; +0.728]$ \\
 SigLIP-L/16$^\dagger$      & 0.741 & $+3.723$ & $[+0.513,\; +8.354]$ \\
 BiomedCLIP                 & 0.561 & $-0.145$ & $[-0.644,\; +0.348]$ \\
-LLaVA-v1.6-Mistral-7B      & 0.705 & $\mathbf{-0.704}$ & $[-1.357,\; -0.094]$ \\
+LLaVA-v1.6-Mistral-7B      & 0.705 & $-0.704$ & $[-1.357,\; -0.094]$ \\
 Qwen2-VL-7B                & 0.520 & $-0.409$ & $[-0.921,\; +0.069]$ \\
 GPT-4o-2024-11-20          & 0.591 & $-0.278$ & $[-0.867,\; +0.182]$ \\
 Claude Sonnet 4.5          & 0.587 & $-0.116$ & $[-0.677,\; +0.355]$ \\
-Claude Haiku 4.5           & 0.653 & $\mathbf{+0.612}$ & $[+0.055,\; +1.220]$ \\
+Claude Haiku 4.5           & 0.653 & $+0.612$ & $[+0.055,\; +1.220]$ \\
 Gemini-3.1-flash-lite      & 0.540 & $+0.393$ & $[-0.169,\; +0.915]$ \\
 \bottomrule
 \end{tabular}
@@ -259,35 +260,17 @@ Setting aside the degenerate SigLIP estimate (footnote $\dagger$), two models ha
 
 % The propensity match and pooled logistic operate at the aggregate level and cannot surface this model-level structure; the per-model logistic is necessary to expose the heterogeneity the pooled endpoint averages away.
 
-\paragraph{Stability under randomization and regularization.}
+\paragraph{Robustness checks.}
+\label{sec:prelim_robustness}
 \label{sec:prelim_seed_lambda}
-Two robustness sweeps at $J = 9$: multi-seed ($5$ seeds, $\hat\Delta \in [+0.051, +0.059]$, all \emph{no\_effect}) and $\lambda_b$ sweep ($10^{-3}$ to $10^{-1}$, $\hat\Delta \in [+0.049, +0.062]$, all \emph{no\_effect}). The sweeps confirm the null is not seed- or $\lambda_b$-dependent.
-
-\paragraph{Cross-backbone and respondent-composition robustness.}
 \label{sec:prelim_cross_backbone}
-BiomedCLIP serves as both embedder and respondent; shared geometry could bias difficulty estimates. We refit with DINOv3 embeddings to test this, and separately refit using only the four calibrated generative respondents to test whether degenerate respondents bias $\hat\Delta$:
-
-\begin{center}
-\small
-\begin{tabular}{lccc}
-\toprule
-Configuration & $\hat\Delta$ & 95\% CI & Decision \\
-\midrule
-BiomedCLIP, $J=9$ (primary) & $+0.051$ & $[-0.229, +0.343]$ & no\_effect \\
-DINOv3, $J=9$               & $+0.051$ & $[-0.222, +0.340]$ & no\_effect \\
-\end{tabular}
-\end{center}
-
-Spearman correlations (at $J=9$): per-item difficulty $\rho = 0.982$, per-respondent ability $\rho = 1.000$. At $J=9$ the two backbones return virtually identical $\hat\Delta$. The generative-only fit (GPT-4o, Sonnet, Haiku, Gemini; all degenerate contrastive and open-weight respondents excluded) returns $\hat\Delta = -0.209$, with V-VI items nominally easier rather than harder. The sign shift relative to the full-panel $+0.051$ is consistent with degenerate respondents having inflated $\hat b_i$ for malignant items via label-confounded gradient contributions, partially biasing $\hat\Delta$ positive after OLS residualization. The null conclusion is preserved under all configurations.
-
-\paragraph{Configural-invariance check (\S\ref{sec:aggregate}).}
 \label{sec:prelim_configural}
-We re-fit the regularized amortized Rasch on the FST-I/II item subset ($n = 208$) and the FST-V/VI item subset ($n = 207$) independently and computed the Spearman correlation of the resulting respondent-ability vectors. At $J = 9$, $\rho = 0.883$ ($p = 0.002$, significantly different from zero but below the PAP threshold of $0.9$; configural invariance \textbf{not established}). The rank instability is concentrated in the two open-weight VLMs added in the $J = 9$ expansion: Qwen2-VL-7B's $\hat\theta$ drops from $-0.45$ on I-II items to $-1.07$ on V-VI items, while Gemini-3.1-flash-lite rises from $-0.11$ to $+0.45$, reflecting per-model heterogeneity in response strategy across FST strata. Excluding the two open-weight VLMs (Qwen2-VL-7B and LLaVA-v1.6-Mistral-7B), the remaining seven respondents return $\rho \geq 0.95$; the rank instability is attributable to the open-weight VLMs alone. The configural failure is a sensitivity finding about model heterogeneity rather than a collapse of the common latent scale; the primary endpoint $\hat\Delta = +0.051$ is robust across both FST sub-panels.
+Five sweeps confirm the null is not an artifact of any single modelling choice. Multi-seed ($5$ seeds, $\hat\Delta \in [+0.051, +0.059]$) and $\lambda_b$ sweeps ($10^{-3}$ to $10^{-1}$, $\hat\Delta \in [+0.049, +0.062]$) all return \emph{no\_effect}. Refitting with DINOv3 embeddings (instead of BiomedCLIP) yields an identical result: $\hat\Delta = +0.051$, CI $[-0.222, +0.340]$; per-item difficulty Spearman $\rho = 0.982$, per-respondent ability $\rho = 1.000$ across the two backbones. A generative-only fit (GPT-4o, Sonnet, Haiku, Gemini) returns $\hat\Delta = -0.209$, V-VI items nominally easier; the sign shift is consistent with degenerate respondents partially biasing $\hat\Delta$ positive, but the null conclusion is preserved. For the configural-invariance check, we refit on the FST-I/II and FST-V/VI item subsets independently; at $J = 9$, $\rho = 0.883$ (below the PAP threshold of $0.9$; configural invariance \emph{not established}). The instability traces to the two open-weight VLMs: excluding Qwen2-VL-7B and LLaVA, the remaining seven respondents return $\rho \geq 0.95$.
 
 
 
 \paragraph{Pre-registration deviations.}
-We record four deviations from the \texttt{prereg-v1} freeze: (i)~\emph{Gemini substitution} --- \texttt{gemini-2.0-flash} was deprecated before our query phase completed; we substituted \texttt{gemini-3.1-flash-lite} as the closest production-tier analog. (ii)~\emph{Config-typo fixes} --- two column-name mismatches in \texttt{config/analysis.yaml} were corrected; no analytic intent altered. (iii)~\emph{Difficulty regularization} --- the PAP did not specify an item-difficulty prior; we adopted $L_2 = 10^{-2}$ per the PAP's stated regularization fallback for divergent fits; the unregularized fit is reported as a sensitivity check.
+We record three deviations from the \texttt{prereg-v1} freeze. (i)~\emph{Gemini substitution}: \texttt{gemini-2.0-flash} was deprecated before our query phase completed; we substituted \texttt{gemini-3.1-flash-lite} as the closest production-tier analog. (ii)~\emph{Config-typo fixes}: two column-name mismatches in \texttt{config/analysis.yaml} were corrected; no analytic intent altered. (iii)~\emph{Difficulty regularization}: the PAP did not specify an item-difficulty prior; we adopted $L_2 = 10^{-2}$ per the PAP's stated regularization fallback for divergent fits; the unregularized fit is reported as a sensitivity check.
 
 % ============================================================================
 \section{Discussion}
@@ -314,7 +297,7 @@ At $J = 9$ there is limited statistical power in our tests. The pre-registered f
 \label{sec:conclusion}
 % ============================================================================
 
-We have shown that amortized IRT combined with inter-rater $\kappa$ degeneracy screening is a principled pipeline for auditing any prevalence-unbalanced vision benchmark. Without it, three respondents (CLIP, SigLIP, LLaVA) would have received inflated ability estimates and corrupted the DIF analysis. Applied to DDI, the item-level audit finds that FST-V/VI items are not demonstrably harder than FST-I/II items after lesion-category controls ($\hat\Delta = +0.051$, CI $[-0.229, +0.343]$); $34\%$ of item-difficulty variance traces to lesion composition alone, leaving less than $0.1\%$ for FST. Crucially, the aggregate null arises from cancellation of opposing per-model effects, where LLaVA performs significantly \emph{worse} on FST-V/VI items after lesion controls, while Claude Haiku performs significantly \emph{better}. A single panel-level fairness metric discards this structure entirely. Future work should extend the panel to power family-stratified analyses, apply the framework to other demographic axes and medical imaging benchmarks, and investigate active-learning item selection to detect DIF with smaller respondent panels.
+We have shown that amortized IRT combined with inter-rater $\kappa$ degeneracy screening is a principled pipeline for auditing any prevalence-unbalanced vision benchmark; without it, three respondents (CLIP, SigLIP, LLaVA) would have received inflated ability estimates and corrupted the DIF analysis. Applied to DDI, the item-level audit finds that FST-V/VI items are not demonstrably harder than FST-I/II items after lesion-category controls ($\hat\Delta = +0.051$, CI $[-0.229, +0.343]$); $34\%$ of item-difficulty variance traces to lesion composition alone, leaving less than $0.1\%$ for FST. Crucially, the aggregate null arises from cancellation of opposing per-model effects: LLaVA performs significantly \emph{worse} on FST-V/VI items after lesion controls, while Claude Haiku performs significantly \emph{better}. A single panel-level fairness metric discards this structure entirely. Future work should extend the panel to power family-stratified analyses, apply the framework to other demographic axes and medical imaging benchmarks, and investigate active-learning item selection to detect DIF with smaller respondent panels.
 
 \setlength{\bibsep}{0.0pt plus 0.3ex}
 \small
