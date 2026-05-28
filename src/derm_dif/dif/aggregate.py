@@ -43,6 +43,7 @@ def residualize(difficulty: np.ndarray, item_attrs: pd.DataFrame, controls: list
 
 
 def _delta(b_resid: np.ndarray, fst: pd.Series, focal: list[str], reference: list[str]) -> tuple[float, int, int]:
+    """Return (mean_focal - mean_reference, n_focal, n_reference) on residualized difficulties."""
     in_focal = fst.isin(focal).values
     in_ref = fst.isin(reference).values
     return float(b_resid[in_focal].mean() - b_resid[in_ref].mean()), int(in_focal.sum()), int(in_ref.sum())
