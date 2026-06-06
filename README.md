@@ -46,11 +46,17 @@ pip install -r requirements-frozen.txt
 
 ---
 
+## Pre-computed artifacts
+
+To reproduce analysis results without re-querying models (which requires API keys and GPU access), pre-computed artifacts are available on request: `artifacts/responses.jsonl` (all model responses, ~50 MB) and `artifacts/rasch/amortized_fit.pkl` (fitted IRT model). Email sonnet@stanford.edu or open a GitHub issue. 
+
+---
+
 ## Reproducing results
 
 All analysis scripts accept `--ddi-root /path/to/ddi`. Run from the repo root.
 
-**Step 1 — Query models** (skip if using pre-queried data):
+**Step 1 — Query models** (skip if using pre-computed `responses.jsonl`):
 ```bash
 python scripts/02_query_models.py --ddi-root $DDI_ROOT
 # outputs: artifacts/responses.jsonl
